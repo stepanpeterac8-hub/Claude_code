@@ -1,0 +1,413 @@
+<!-- ══════════════════════════════════════════════════════
+     location.html — Výběr místa stavby
+     ══════════════════════════════════════════════════════ -->
+<style>
+  /* ── Toggle buttons ── */
+  #location.section { padding-top: 1.2rem; padding-bottom: 1.2rem; }
+  #location .section-header { margin-bottom: 0.8rem; }
+  .location-toggle {
+    display: flex; gap: .75rem; justify-content: center; margin-bottom: 0.8rem;
+  }
+  .loc-btn {
+    display: inline-flex; align-items: center; gap: .55rem;
+    padding: .65rem 2.2rem; border-radius: 100px;
+    font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    border: 2px solid var(--amber); background: transparent; color: var(--amber);
+    cursor: pointer; transition: background .25s, color .25s, box-shadow .25s, transform .15s;
+  }
+  .loc-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(180,83,9,.18); }
+  .loc-btn.active { background: var(--amber); color: #fff; box-shadow: 0 6px 20px rgba(180,83,9,.28); }
+  .loc-btn-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+  /* ── Panels ── */
+  .location-panel {
+    display: none; animation: locFadeIn .38s cubic-bezier(.22,.68,0,1.2);
+  }
+  .location-panel.active { display: block; }
+
+  @keyframes locFadeIn {
+    from { opacity: 0; transform: translateY(16px) scale(.99); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── Card ── */
+  .location-card {
+    border-radius: 24px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--cream-mid);
+    box-shadow: 0 4px 32px rgba(44,24,16,.06);
+  }
+
+  /* ── Card accent bar ── */
+  .loc-accent-bar {
+    height: 5px;
+    background: linear-gradient(90deg, var(--amber), var(--gold-pale));
+  }
+  .proposal-b .loc-accent-bar {
+    background: linear-gradient(90deg, var(--gold), #d4b896);
+  }
+
+  /* ── Card inner ── */
+  .loc-card-inner {
+    padding: 1rem 1.5rem 1.2rem;
+  }
+
+  /* ── Card header ── */
+  .loc-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 0.7rem; gap: 1rem; flex-wrap: wrap;
+  }
+  .loc-card-title-group {}
+  .loc-card-label {
+    font-family: monospace; font-size: .68rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--amber); margin-bottom: .4rem; display: block;
+  }
+  .proposal-b .loc-card-label { color: var(--gold); }
+  .loc-card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem; color: var(--brown); line-height: 1.15; margin: 0;
+  }
+  .loc-card-badge {
+    flex-shrink: 0;
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--cream-deep); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem; color: var(--amber); font-style: italic;
+  }
+  .proposal-b .loc-card-badge { color: var(--gold); }
+
+  /* ── Photos ── */
+  .location-photos {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .6rem;
+    margin-bottom: 0.8rem;
+  }
+  .loc-photo-wrap {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    cursor: zoom-in;
+  }
+  .loc-photo-wrap img {
+    width: 100%; height: 325px; object-fit: cover;
+    display: block;
+    transition: transform .45s ease;
+    filter: saturate(.75);
+  }
+  .loc-photo-wrap:hover img {
+    transform: scale(1.04);
+  }
+  /* Photo number badge */
+  .loc-photo-wrap::after {
+    content: attr(data-num);
+    position: absolute; bottom: .75rem; right: .75rem;
+    background: rgba(0,0,0,.45); color: #fff;
+    font-size: .65rem; font-weight: 700; letter-spacing: .1em;
+    padding: .25rem .55rem; border-radius: 100px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── Divider inside card ── */
+  .loc-divider {
+    border: none; border-top: 1px solid var(--border); margin: 0 0 0.8rem;
+  }
+
+  /* ── Pros / Cons ── */
+  .location-pros-cons {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;
+  }
+  .pros-col, .cons-col {
+    border-radius: 16px; padding: 0.8rem 1rem;
+  }
+  .pros-col {
+    background: #f0f7eb;
+    border: 1px solid #c5ddb8;
+  }
+  .cons-col {
+    background: #fdf2ee;
+    border: 1px solid #ecc4b4;
+  }
+  .pc-label {
+    font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    margin-bottom: 0.5rem; display: flex; align-items: center; gap: .5rem;
+  }
+  .pc-label::before {
+    content: ''; display: inline-block;
+    width: 18px; height: 2px; border-radius: 2px;
+  }
+  .pros-col .pc-label { color: #3a7a28; }
+  .pros-col .pc-label::before { background: #3a7a28; }
+  .cons-col .pc-label { color: #b04030; }
+  .cons-col .pc-label::before { background: #b04030; }
+
+  .location-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+  .location-list li {
+    display: flex; align-items: flex-start; gap: .65rem;
+    font-size: .86rem; color: var(--brown-mid); line-height: 1.55;
+  }
+  .loc-icon {
+    flex-shrink: 0; margin-top: .08rem;
+    width: 20px; height: 20px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem;
+  }
+  .pros-col .loc-icon { background: #d5edca; }
+  .cons-col .loc-icon { background: #f6d5ca; }
+
+  /* ── Lightbox ── */
+  .loc-lightbox {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.9); align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .loc-lightbox.open { display: flex; animation: locFadeIn .2s ease; }
+  .loc-lb-inner {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: .75rem;
+    max-width: min(1100px, 95vw);
+  }
+  .loc-lightbox img {
+    max-width: 100%; max-height: 82dvh; border-radius: 12px;
+    object-fit: contain; box-shadow: 0 16px 64px rgba(0,0,0,.6);
+    cursor: default;
+  }
+  .loc-lb-close {
+    position: absolute; top: -14px; right: -14px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--amber); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .loc-lb-close:hover { background: var(--amber-dark); }
+  .loc-lb-close { font-size: 1rem; line-height: 1; }
+  .loc-lb-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: #fff; transition: background .15s;
+  }
+  .loc-lb-nav:hover { background: rgba(180,83,9,.5); }
+  .loc-lb-prev { left: -56px; }
+  .loc-lb-next { right: -56px; }
+  .loc-lb-nav { font-size: 1.4rem; line-height: 1; }
+  .loc-lb-caption {
+    font-family: monospace; font-size: .6rem; letter-spacing: .18em;
+    text-transform: uppercase; color: rgba(255,255,255,.45); text-align: center;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .location-photos { grid-template-columns: 1fr; }
+    .location-pros-cons { grid-template-columns: 1fr; }
+    .loc-card-inner { padding: 1.75rem; }
+  }
+</style>
+
+<section class="section" id="location">
+  <div class="section-header reveal">
+    <span class="section-num">05 —</span>
+    <h2 class="section-title">Výběr místa stavby</h2>
+    <p class="section-sub">Dvě potenciální polohy — každá s vlastními výhodami a kompromisy.</p>
+  </div>
+
+  <!-- Toggle buttons -->
+  <div class="location-toggle">
+    <button class="loc-btn active" data-target="loc-a">
+      <span class="loc-btn-dot"></span> Návrh A
+    </button>
+    <button class="loc-btn" data-target="loc-b">
+      <span class="loc-btn-dot"></span> Návrh B
+    </button>
+  </div>
+
+  <!-- Panel A -->
+  <div class="location-panel active" id="loc-a">
+    <div class="location-card proposal-a">
+      <div class="loc-accent-bar"></div>
+      <div class="loc-card-inner">
+        <div class="loc-card-header">
+          <div class="loc-card-title-group">
+            <span class="loc-card-label">Návrh A</span>
+            <h3 class="loc-card-title">Poblíž tábora u vrby</h3>
+          </div>
+          <div class="loc-card-badge">A</div>
+        </div>
+
+        <div class="location-photos">
+          <div class="loc-photo-wrap" data-num="01">
+            <img src="Fotky/IMG_20260321_125614.jpg" alt="Návrh A — pohled 1" loading="lazy">
+          </div>
+          <div class="loc-photo-wrap" data-num="02">
+            <img src="Fotky/IMG_20260321_125705 (1).jpg" alt="Návrh A — pohled 2" loading="lazy">
+          </div>
+        </div>
+
+        <hr class="loc-divider">
+
+        <div class="location-pros-cons">
+          <div class="pros-col">
+            <span class="pc-label">Výhody</span>
+            <ul class="location-list">
+              <li><span class="loc-icon">✅</span>Krátka vzdálenost od tábora — snadný přístup</li>
+              <li><span class="loc-icon">✅</span>Budova ze silnice téměř není vidět</li>
+              <li><span class="loc-icon">✅</span>Není nutné přecházet přes most</li>
+            </ul>
+          </div>
+          <div class="cons-col">
+            <span class="pc-label">Nevýhody</span>
+            <ul class="location-list">
+              <li><span class="loc-icon">❌</span>Velmi blízko vody — riziko vlhkosti a nestability podloží</li>
+              <li><span class="loc-icon">❌</span>Z tábora bude budova více na očích</li>
+              <li><span class="loc-icon">❌</span>Méně manipulačního prostoru při stavbě</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel B -->
+  <div class="location-panel" id="loc-b">
+    <div class="location-card proposal-b">
+      <div class="loc-accent-bar"></div>
+      <div class="loc-card-inner">
+        <div class="loc-card-header">
+          <div class="loc-card-title-group">
+            <span class="loc-card-label">Návrh B</span>
+            <h3 class="loc-card-title">Za potokem</h3>
+          </div>
+          <div class="loc-card-badge">B</div>
+        </div>
+
+        <div class="location-photos">
+          <div class="loc-photo-wrap" data-num="01">
+            <img src="Fotky/IMG_20260321_125828.jpg" alt="Návrh B — pohled 1" loading="lazy">
+          </div>
+          <div class="loc-photo-wrap" data-num="02">
+            <img src="Fotky/IMG_20260321_125900.jpg" alt="Návrh B — pohled 2" loading="lazy">
+          </div>
+        </div>
+
+        <hr class="loc-divider">
+
+        <div class="location-pros-cons">
+          <div class="pros-col">
+            <span class="pc-label">Výhody</span>
+            <ul class="location-list">
+              <li><span class="loc-icon">✅</span>Méně viditelné z tábora — nepůsobí rušivě</li>
+              <li><span class="loc-icon">✅</span>Stabilnější podloží — nižší riziko vlhkosti</li>
+              <li><span class="loc-icon">✅</span>Více místa při stavbě</li>
+            </ul>
+          </div>
+          <div class="cons-col">
+            <span class="pc-label">Nevýhody</span>
+            <ul class="location-list">
+              <li><span class="loc-icon">❌</span>Větší vzdálenost od tábora</li>
+              <li><span class="loc-icon">❌</span>Nutné vybudování mostu pro přístup</li>
+              <li><span class="loc-icon">❌</span>Blízko lesa — možné komplikace se stínem a vlhkostí</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Lightbox -->
+<div class="loc-lightbox" id="locLightbox">
+  <div class="loc-lb-inner">
+    <button class="loc-lb-close" id="locLbClose" aria-label="Zavřít">&#x2715;</button>
+    <button class="loc-lb-nav loc-lb-prev" id="locLbPrev" aria-label="Předchozí">&#x2039;</button>
+    <img id="locLightboxImg" src="" alt="">
+    <button class="loc-lb-nav loc-lb-next" id="locLbNext" aria-label="Další">&#x203A;</button>
+    <div class="loc-lb-caption" id="locLbCaption"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── Button switching ── */
+  const locationSection = document.getElementById('location');
+  console.log('[location] sekce nalezena:', locationSection);
+  const btns   = locationSection.querySelectorAll('.loc-btn');
+  const panels = locationSection.querySelectorAll('.location-panel');
+  console.log('[location] tlačítka:', btns.length, 'panely:', panels.length);
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('[location] klik na:', btn.dataset.target);
+      btns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const target = locationSection.querySelector('#' + btn.dataset.target);
+      console.log('[location] target nalezen:', target);
+      if (target) target.classList.add('active');
+    });
+  });
+
+  /* ── Lightbox ── */
+  const lightbox    = document.getElementById('locLightbox');
+  const lightboxImg = document.getElementById('locLightboxImg');
+  const lbCaption   = document.getElementById('locLbCaption');
+  const lbClose     = document.getElementById('locLbClose');
+  const lbPrev      = document.getElementById('locLbPrev');
+  const lbNext      = document.getElementById('locLbNext');
+
+  let allPhotos = []; // { src, alt, caption } pro aktivní panel
+  let lbCurrent = 0;
+
+  function getActivePhotos() {
+    const activePanel = document.querySelector('.location-panel.active');
+    return Array.from(activePanel.querySelectorAll('.loc-photo-wrap img')).map((img, i) => ({
+      src: img.src, alt: img.alt,
+      caption: img.closest('.loc-photo-wrap').dataset.num
+        ? 'Fotografie ' + img.closest('.loc-photo-wrap').dataset.num
+        : img.alt
+    }));
+  }
+
+  function lbOpen(index) {
+    allPhotos = getActivePhotos();
+    lbCurrent = (index + allPhotos.length) % allPhotos.length;
+    lightboxImg.src = allPhotos[lbCurrent].src;
+    lightboxImg.alt = allPhotos[lbCurrent].alt;
+    lbCaption.textContent = allPhotos[lbCurrent].caption
+      + (allPhotos.length > 1 ? '  ·  ' + (lbCurrent + 1) + ' / ' + allPhotos.length : '');
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    lbClose.focus();
+  }
+
+  function lbClose2() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('#location .loc-photo-wrap').forEach((wrap) => {
+    wrap.addEventListener('click', () => {
+      const activePanel = document.querySelector('.location-panel.active');
+      const wrapsInPanel = Array.from(activePanel.querySelectorAll('.loc-photo-wrap'));
+      const idx = wrapsInPanel.indexOf(wrap);
+      lbOpen(idx !== -1 ? idx : 0);
+    });
+  });
+
+  lbClose.addEventListener('click', lbClose2);
+  lbPrev.addEventListener('click', () => lbOpen(lbCurrent - 1));
+  lbNext.addEventListener('click', () => lbOpen(lbCurrent + 1));
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) lbClose2(); });
+
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape')     lbClose2();
+    if (e.key === 'ArrowRight') lbOpen(lbCurrent + 1);
+    if (e.key === 'ArrowLeft')  lbOpen(lbCurrent - 1);
+  });
+
+})();
+</script>
+
+<hr class="divider">

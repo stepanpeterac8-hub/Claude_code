@@ -1,0 +1,669 @@
+<!-- ══════════════════════════════════════════════════════
+     header.html — navigační lišta + progress bar + přehled modal
+     ══════════════════════════════════════════════════════ -->
+<style>
+  /* POZOR: z-index 1000 — navbar se nepropade pod Three.js canvas */
+  #navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(253,244,231,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .4s, background .4s, color .4s;
+  }
+  #navbar.scrolled { border-color: var(--border); }
+  #navbar.dark {
+    background: rgba(28,14,8,0.93);
+    border-color: rgba(196,168,128,.15);
+  }
+  #navbar.dark .nav-logo { color: var(--cream); }
+  #navbar.dark .nav-links a { color: var(--gold); }
+  #navbar.dark .nav-links a:hover { color: var(--gold-pale); }
+  #navbar.dark #nav-progress { background: var(--gold); }
+
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .85rem 2rem;
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--brown);
+    flex-shrink: 0;
+  }
+  .nav-logo-badge {
+    width: 52px; height: 52px;
+    flex-shrink: 0; background: transparent;
+    border-radius: 50%; overflow: hidden;
+  }
+  .nav-logo-badge img {
+    width: 140%; height: 140%;
+    margin: -20% 0 0 -20%;
+    object-fit: cover; display: block;
+  }
+  .nav-logo-text { font-size: .82rem; font-weight: 700; letter-spacing: .02em; }
+
+  .nav-links { display: flex; align-items: center; gap: 1.6rem; list-style: none; }
+  .nav-links a {
+    text-decoration: none; font-size: .75rem; font-weight: 600;
+    color: var(--brown-light); letter-spacing: .04em; text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--amber); }
+
+  /* Tlačítko Přehled */
+  .nav-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: var(--amber); color: #fff !important;
+    font-size: .7rem !important; font-weight: 700 !important; letter-spacing: .06em !important;
+    text-transform: uppercase !important; text-decoration: none !important;
+    padding: .4rem .9rem; border-radius: 100px;
+    transition: background .2s !important;
+    cursor: pointer; border: none;
+  }
+  .nav-btn:hover { background: var(--amber-dark) !important; color: #fff !important; }
+  .nav-btn-dot {
+    width: 5px; height: 5px; background: rgba(255,255,255,.55);
+    border-radius: 50%; flex-shrink: 0;
+  }
+
+  #nav-progress {
+    position: absolute; bottom: 0; left: 0;
+    height: 2px; width: 0%; background: var(--amber);
+    transform-origin: left; will-change: width;
+  }
+
+  /* ── HAMBURGER ────────────────────────────────────── */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 36px; height: 36px;
+    background: none; border: none;
+    cursor: pointer; padding: 4px;
+    border-radius: 8px;
+    transition: background .2s;
+  }
+  .nav-hamburger:hover { background: var(--cream-deep); }
+  #navbar.dark .nav-hamburger:hover { background: rgba(255,255,255,.08); }
+  .nav-hamburger span {
+    display: block;
+    height: 2px; width: 22px;
+    background: var(--brown);
+    border-radius: 2px;
+    transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .2s, width .3s;
+    transform-origin: center;
+  }
+  #navbar.dark .nav-hamburger span { background: var(--gold); }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; width: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── MOBILNÍ MENU ──────────────────────────────────── */
+  #mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 999;
+    background: rgba(253,244,231,0.97);
+    backdrop-filter: blur(16px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  #mobile-menu.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #navbar.dark ~ #mobile-menu {
+    background: rgba(28,14,8,0.97);
+  }
+  #mobile-menu a, #mobile-menu button.nav-btn {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: 'DM Serif Display', serif;
+    color: var(--brown);
+    text-decoration: none;
+    text-transform: none;
+    letter-spacing: 0;
+    padding: .7rem 2rem;
+    transition: color .2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+  }
+  #navbar.dark ~ #mobile-menu a { color: var(--cream); }
+  #mobile-menu a:hover { color: var(--amber); }
+  #mobile-menu .mob-btn-wrap {
+    margin-top: 1.2rem;
+  }
+  #mobile-menu .nav-btn {
+    font-size: .85rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+    padding: .6rem 1.6rem !important;
+  }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    #mobile-menu { display: flex; }
+  }
+
+  /* ══════════════════════════════════════════
+     PŘEHLED MODAL
+     ══════════════════════════════════════════ */
+  #prehled-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: stretch; justify-content: stretch;
+    padding: 0;
+    opacity: 0; pointer-events: none;
+    transition: opacity .35s ease;
+  }
+  #prehled-overlay.open {
+    opacity: 1; pointer-events: all;
+  }
+
+  #prehled-modal {
+    background: var(--cream);
+    width: 100%; height: 100%;
+    max-width: 100%; max-height: 100%;
+    overflow-y: auto;
+    transform: translateY(32px);
+    transition: transform .4s cubic-bezier(.22,1,.36,1);
+    position: relative;
+  }
+  #prehled-overlay.open #prehled-modal {
+    transform: translateY(0);
+  }
+
+  .pm-close {
+    position: absolute; top: 1.2rem; right: 1.2rem;
+    width: 32px; height: 32px;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--brown-light);
+    transition: background .2s, color .2s;
+    line-height: 1;
+  }
+  .pm-close:hover { background: var(--amber); color: #fff; border-color: var(--amber); }
+
+  /* Header modalu */
+  .pm-head {
+    max-width: 1100px; margin: 0 auto;
+    padding: 4rem 4rem 0;
+  }
+  .pm-eyebrow {
+    font-size: .75rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .14em; color: var(--amber); margin-bottom: .7rem;
+  }
+  .pm-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    color: var(--brown); line-height: 1.1;
+    margin: 0 0 .6rem;
+  }
+  .pm-title span { color: var(--amber); }
+  .pm-sub {
+    font-size: 1rem; color: var(--brown-light); line-height: 1.6;
+  }
+
+  /* KPI řada */
+  .pm-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 2.5rem 0 0;
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+  .pm-kpi {
+    padding: 1.5rem 1.8rem;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .pm-kpi-val {
+    font-family: monospace;
+    font-size: 1.7rem; font-weight: 900;
+    color: var(--brown); margin-bottom: .2rem;
+  }
+  .pm-kpi-label {
+    font-size: .72rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--brown-light);
+  }
+
+  /* Tělo modalu */
+  .pm-body {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 4rem 4rem;
+  }
+
+  /* Dvousloupcový layout — 3D + karty */
+  .pm-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  /* Mini 3D viewer */
+  .pm-viewer-wrap {
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--cream-deep);
+    border: 1px solid var(--border);
+    height: 340px;
+    position: relative;
+  }
+  #pm-canvas { width: 100% !important; height: 100% !important; display: block; }
+  .pm-viewer-label {
+    position: absolute; bottom: .8rem; left: .8rem;
+    background: rgba(44,24,16,.52); color: rgba(255,255,255,.85);
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; padding: .3rem .65rem; border-radius: 7px;
+  }
+
+  /* Pravý sloupec — 3 karty */
+  .pm-cards {
+    display: flex; flex-direction: column; gap: .9rem;
+  }
+  .pm-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.3rem 1.5rem;
+    display: flex; gap: 1.1rem; align-items: flex-start;
+    flex: 1;
+  }
+  .pm-card-icon {
+    font-size: 1.6rem; flex-shrink: 0; margin-top: .05rem;
+  }
+  .pm-card-title {
+    font-size: .82rem; font-weight: 800; color: var(--brown);
+    margin-bottom: .3rem; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .pm-card-text {
+    font-size: .88rem; color: var(--brown-mid); line-height: 1.6;
+  }
+
+  /* Fáze timeline */
+  .pm-phases {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .8rem;
+  }
+  .pm-phase {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+  }
+  .pm-phase-num {
+    font-size: .68rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--amber); margin-bottom: .3rem;
+  }
+  .pm-phase-name {
+    font-size: .9rem; font-weight: 700; color: var(--brown);
+    margin-bottom: .25rem;
+  }
+  .pm-phase-date {
+    font-size: .75rem; color: var(--brown-light);
+  }
+
+  @media (max-width: 768px) {
+    .pm-head { padding: 2rem 1.5rem 0; }
+    .pm-body { padding: 0 1.5rem 2rem; }
+    .pm-kpis { grid-template-columns: repeat(2, 1fr); }
+    .pm-layout { grid-template-columns: 1fr; }
+    .pm-phases { grid-template-columns: repeat(2, 1fr); }
+    .pm-viewer-wrap { height: 220px; }
+  }
+</style>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#hero">
+      <div class="nav-logo-badge"><img src="Fotky/Gemini_Generated_Image_lxu3xrlxu3xrlxu3.png" alt="ORV logo"></div>
+      <span class="nav-logo-text">ORV Projekt</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">Proč</a></li>
+      <li><a href="#model3d">3D</a></li>
+      <li><a href="#compare">Srovnání</a></li>
+      <li><a href="#schedule">Plán</a></li>
+      <li><a href="#budget">Rozpočet</a></li>
+      <li><a href="#materials">Materiály</a></li>
+      <li><button class="nav-btn" id="btn-prehled"><span class="nav-btn-dot"></span>Přehled</button></li>
+    </ul>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Otevřít menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div id="nav-progress"></div>
+</nav>
+
+<!-- Mobilní menu -->
+<div id="mobile-menu" role="dialog" aria-label="Navigace">
+  <a href="#about"     class="mob-link">Proč</a>
+  <a href="#model3d"   class="mob-link">3D model</a>
+  <a href="#compare"   class="mob-link">Srovnání</a>
+  <a href="#schedule"  class="mob-link">Plán</a>
+  <a href="#budget"    class="mob-link">Rozpočet</a>
+  <a href="#materials" class="mob-link">Materiály</a>
+  <div class="mob-btn-wrap">
+    <button class="nav-btn" id="btn-prehled-mob"><span class="nav-btn-dot"></span>Přehled</button>
+  </div>
+</div>
+
+<!-- ══ PŘEHLED MODAL ══ -->
+<div id="prehled-overlay" role="dialog" aria-modal="true" aria-label="Přehled projektu">
+  <div id="prehled-modal">
+    <button class="pm-close" id="btn-prehled-close" aria-label="Zavřít">✕</button>
+
+    <!-- Hlavička -->
+    <div class="pm-head">
+      <div class="pm-eyebrow">Skautské středisko · 2026</div>
+      <h2 class="pm-title">Stavba <span>ORV</span></h2>
+      <p class="pm-sub">Nová dřevěná skladovací budova 6 × 3 m pro tábořiště — pevná, krásná, postavená vlastníma rukama.</p>
+
+      <!-- KPI řada -->
+      <div class="pm-kpis">
+        <div class="pm-kpi">
+          <div class="pm-kpi-val">~135 tis.</div>
+          <div class="pm-kpi-label">Celková cena</div>
+        </div>
+        <div class="pm-kpi">
+          <div class="pm-kpi-val">6 × 3 m</div>
+          <div class="pm-kpi-label">Půdorys</div>
+        </div>
+        <div class="pm-kpi">
+          <div class="pm-kpi-val">Do 8/2026</div>
+          <div class="pm-kpi-label">Termín dokončení</div>
+        </div>
+        <div class="pm-kpi">
+          <div class="pm-kpi-val">20+ let</div>
+          <div class="pm-kpi-label">Životnost</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tělo -->
+    <div class="pm-body">
+
+      <!-- 3D + karty -->
+      <div class="pm-layout">
+
+        <!-- Mini 3D viewer -->
+        <div class="pm-viewer-wrap">
+          <canvas id="pm-canvas"></canvas>
+          <div class="pm-viewer-label">3D model · ORV</div>
+        </div>
+
+        <!-- 3 karty -->
+        <div class="pm-cards">
+          <div class="pm-card">
+            <div class="pm-card-icon">⚠️</div>
+            <div>
+              <div class="pm-card-title">Problém</div>
+              <div class="pm-card-text">Stávající sklad dožívá — prohnilé dřevo, netěsná střecha, nedostatečná kapacita pro veškeré vybavení.</div>
+            </div>
+          </div>
+          <div class="pm-card">
+            <div class="pm-card-icon">💡</div>
+            <div>
+              <div class="pm-card-title">Úspora</div>
+              <div class="pm-card-text">Stavíme svépomocí — parta 4 stavitelů a 1 vedoucí. Oproti dodavatelské stavbě ušetříme desítky tisíc Kč.</div>
+            </div>
+          </div>
+          <div class="pm-card">
+            <div class="pm-card-icon">✅</div>
+            <div>
+              <div class="pm-card-title">Výsledek</div>
+              <div class="pm-card-text">Pevná, moderní budova na 20+ let — důstojné zázemí pro celý skautský tábor.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fáze -->
+      <div class="pm-phases">
+        <div class="pm-phase">
+          <div class="pm-phase-num">Fáze 1</div>
+          <div class="pm-phase-name">Základy & patky</div>
+          <div class="pm-phase-date">Duben </div>
+        </div>
+        <div class="pm-phase">
+          <div class="pm-phase-num">Fáze 2</div>
+          <div class="pm-phase-name">Podlaha & rám</div>
+          <div class="pm-phase-date">Květen - Červen</div>
+        </div>
+        <div class="pm-phase">
+          <div class="pm-phase-num">Fáze 3</div>
+          <div class="pm-phase-name">Střecha & opláštění</div>
+          <div class="pm-phase-date">Červenec</div>
+        </div>
+        <div class="pm-phase">
+          <div class="pm-phase-num">Fáze 4</div>
+          <div class="pm-phase-name">Dokončování</div>
+          <div class="pm-phase-date">Červenec – Srpen</div>
+        </div>
+      </div>
+
+    </div><!-- /pm-body -->
+  </div><!-- /pm-modal -->
+</div><!-- /pm-overlay -->
+
+<script type="module">
+  // ── Hamburger menu ─────────────────────────────────────────
+  const hamburger  = document.getElementById('nav-hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobLinks   = mobileMenu.querySelectorAll('.mob-link');
+  const btnPrehledMob = document.getElementById('btn-prehled-mob');
+
+  function openMobileMenu() {
+    hamburger.classList.add('open');
+    mobileMenu.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobileMenu() {
+    hamburger.classList.remove('open');
+    mobileMenu.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.contains('open') ? closeMobileMenu() : openMobileMenu();
+  });
+  mobLinks.forEach(a => a.addEventListener('click', closeMobileMenu));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileMenu(); });
+
+  // ── Modal otevření / zavření ───────────────────────────────
+  const overlay  = document.getElementById('prehled-overlay');
+  const btnOpen  = document.getElementById('btn-prehled');
+  const btnClose = document.getElementById('btn-prehled-close');
+
+  function openModal() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    initMiniViewer();
+  }
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btnOpen.addEventListener('click', openModal);
+  btnPrehledMob.addEventListener('click', () => { closeMobileMenu(); openModal(); });
+  btnClose.addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── Mini Three.js viewer ───────────────────────────────────
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  let viewerReady = false;
+
+  function initMiniViewer() {
+    if (viewerReady) return;
+    viewerReady = true;
+
+    const canvas = document.getElementById('pm-canvas');
+    const wrap   = canvas.parentElement;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf5e6cc);
+
+    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.01, 1000);
+    camera.position.set(6, 4, 8);
+
+    scene.add(new THREE.AmbientLight(0xfff4e0, 1.2));
+    const sun = new THREE.DirectionalLight(0xfff0cc, 2.5);
+    sun.position.set(5, 10, 5); scene.add(sun);
+    const fill = new THREE.DirectionalLight(0xc4a880, 0.6);
+    fill.position.set(-5, 3, -5); scene.add(fill);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.keys = {};
+    controls.enableDamping   = true;
+    controls.dampingFactor   = 0.07;
+    controls.autoRotate      = true;
+    controls.autoRotateSpeed = 1.0;
+    controls.minDistance     = 2;
+    controls.maxDistance     = 30;
+    controls.enablePan       = false;
+
+    // Barvy fází
+    const PHASE_COLORS = [
+      { prefix: 'podlaha_',          color: 0xC8A882 },
+      { prefix: 'patky_',            color: 0xE8E0D5 },
+      { prefix: 'framework_sten_',   color: 0x6B4226 },
+      { prefix: 'steny_palubky_',    color: 0xC8A882 },
+      { prefix: 'podklad_strechy_',  color: 0x6B4226 },
+      { prefix: 'strecha_',          color: 0x6B4226 },
+    ];
+
+    function getColor(name) {
+      for (const c of PHASE_COLORS) if (name.startsWith(c.prefix)) return c.color;
+      return null;
+    }
+
+    // Barevný placeholder — viditelný okamžitě před načtením GLB
+    const placeholder = new THREE.Group();
+
+    // Základy (patky) — šedavé
+    const patkyMat = new THREE.MeshStandardMaterial({ color: 0xB0A090, roughness: .9 });
+    for (const [px, pz] of [[-2.5,-1],[ 2.5,-1],[-2.5, 1],[ 2.5, 1]]) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .5), patkyMat);
+      m.position.set(px, -.15, pz); placeholder.add(m);
+    }
+
+    // Podlaha — teplá světle hnědá
+    const floor = new THREE.Mesh(
+      new THREE.BoxGeometry(6, .12, 3),
+      new THREE.MeshStandardMaterial({ color: 0xD4A96A, roughness: .8 })
+    );
+    floor.position.y = .06; placeholder.add(floor);
+
+    // Stěny — tmavší dřevo
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x7A4F2D, roughness: .85 });
+    // přední + zadní
+    for (const pz of [-1.425, 1.425]) {
+      const w = new THREE.Mesh(new THREE.BoxGeometry(6, 2.2, .15), wallMat);
+      w.position.set(0, 1.22, pz); placeholder.add(w);
+    }
+    // boční
+    for (const px of [-2.925, 2.925]) {
+      const w = new THREE.Mesh(new THREE.BoxGeometry(.15, 2.2, 3), wallMat);
+      w.position.set(px, 1.22, 0); placeholder.add(w);
+    }
+
+    // Střecha — terakota / rezavě oranžová
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0xC0522A, roughness: .75 });
+    // dvě plochy sedlové střechy
+    for (const [rx, ry, rz, rot] of [
+      [-1.55, 2.7, 0, -0.42],
+      [ 1.55, 2.7, 0,  0.42],
+    ]) {
+      const r = new THREE.Mesh(new THREE.BoxGeometry(3.3, .12, 3.3), roofMat);
+      r.position.set(rx, ry, rz);
+      r.rotation.z = rot;
+      placeholder.add(r);
+    }
+    // hřeben
+    const ridge = new THREE.Mesh(
+      new THREE.BoxGeometry(.18, .18, 3.3),
+      new THREE.MeshStandardMaterial({ color: 0x8B3A1A, roughness: .7 })
+    );
+    ridge.position.set(0, 3.05, 0); placeholder.add(ridge);
+
+    // Dveře — tmavý otvor
+    const door = new THREE.Mesh(
+      new THREE.BoxGeometry(.8, 1.6, .05),
+      new THREE.MeshStandardMaterial({ color: 0x3A2010, roughness: 1 })
+    );
+    door.position.set(.5, .92, -1.4); placeholder.add(door);
+
+    // Okno — světle modré
+    const win = new THREE.Mesh(
+      new THREE.BoxGeometry(.7, .6, .05),
+      new THREE.MeshStandardMaterial({ color: 0x88BBDD, roughness: .2, metalness: .1 })
+    );
+    win.position.set(-1.2, 1.4, -1.4); placeholder.add(win);
+
+    scene.add(placeholder);
+    camera.position.set(8, 5, 10);
+    controls.target.set(0, 1, 0);
+    controls.update();
+
+    new GLTFLoader().loadAsync('model_komplet.glb').then(gltf => {
+      scene.remove(placeholder);
+      scene.add(gltf.scene);
+      gltf.scene.traverse(obj => {
+        if (!obj.isMesh) return;
+        const col = getColor(obj.name);
+        if (col !== null) {
+          obj.material = new THREE.MeshStandardMaterial({ color: col, roughness: .75, metalness: .05 });
+        }
+      });
+      const box    = new THREE.Box3().setFromObject(gltf.scene);
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      gltf.scene.position.sub(center);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      camera.position.set(maxDim * 1.5, maxDim, maxDim * 1.5);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }).catch(() => {});
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(w, h, false);
+    });
+  }
+</script>

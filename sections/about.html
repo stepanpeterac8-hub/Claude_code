@@ -1,0 +1,428 @@
+<!-- ══════════════════════════════════════════════════════
+     about.html — O projektu
+     ══════════════════════════════════════════════════════ -->
+<style>
+  #about {
+    background: var(--cream);
+  }
+
+  /* Pull quote */
+  .about-pullquote {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: clamp(1.5rem, 3vw, 2.4rem);
+    color: var(--brown);
+    line-height: 1.35;
+    max-width: 780px;
+    margin: 0 auto 4.5rem;
+    text-align: center;
+    position: relative;
+    padding: 0 2rem;
+  }
+  .about-pullquote::before {
+    content: '\201E';
+    font-family: 'DM Serif Display', serif;
+    font-size: 8rem;
+    color: var(--gold-pale);
+    position: absolute;
+    top: -2rem; left: 0;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* Hlavní grid — text vlevo, fotky vpravo */
+  #about .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 4rem;
+    align-items: stretch;
+  }
+
+  /* ── Textová část ── */
+  .about-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+  /* Poslední highlight box se přilepí ke spodní hraně */
+  .about-body .about-highlight:last-of-type {
+    margin-top: auto;
+  }
+
+  .about-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--amber);
+    margin-bottom: -.4rem;
+  }
+  .about-label::before {
+    content: '';
+    display: inline-block;
+    width: 18px; height: 2px;
+    background: var(--amber);
+    border-radius: 2px;
+  }
+
+  .about-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--brown-mid);
+  }
+
+  /* Highlight box */
+  .about-highlight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: 12px;
+    padding: 1.1rem 1.4rem;
+  }
+  .about-highlight-val {
+    font-family: monospace;
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+  .about-highlight-desc {
+    font-size: .82rem;
+    color: var(--brown-mid);
+    line-height: 1.55;
+  }
+
+  /* ── Fotogalerie staré budovy ── */
+  .about-photos {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .about-photos-label {
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .about-photos-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .about-photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: .6rem;
+  }
+
+  .about-photo-wrap {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    background: var(--border);
+  }
+
+  .about-photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease, filter .4s ease;
+    filter: saturate(.75);
+  }
+  .about-photo-wrap:hover img {
+    transform: scale(1.04);
+    filter: saturate(1);
+  }
+
+  /* Překryvný badge "Stávající stav" */
+  .about-photo-wrap::after {
+    content: 'Stávající stav';
+    position: absolute;
+    bottom: .6rem; left: .6rem;
+    background: rgba(0,0,0,.52);
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: .3rem .6rem;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  /* Odůvodnění pod fotkama — přilepeno ke spodní hraně */
+  .about-reason {
+    margin-top: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .about-reason-title {
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--amber);
+  }
+  .about-reason-list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+  .about-reason-list li {
+    font-size: .82rem;
+    color: var(--brown-mid);
+    line-height: 1.5;
+    display: flex;
+    gap: .55rem;
+    align-items: flex-start;
+  }
+  .about-reason-list li::before {
+    content: '×';
+    color: var(--amber);
+    font-weight: 900;
+    font-size: .9rem;
+    flex-shrink: 0;
+    margin-top: .05rem;
+  }
+
+  @media (max-width: 768px) {
+    #about .about-grid { grid-template-columns: 1fr; }
+    .about-pullquote::before { font-size: 5rem; }
+  }
+
+  /* ── Lightbox ── */
+  .about-photo-wrap { cursor: zoom-in; }
+
+  #about-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,.85);
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  #about-lightbox.open {
+    display: flex;
+  }
+  #about-lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+  }
+  #about-lightbox-close {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: rgba(255,255,255,.15);
+    border: none;
+    color: #fff;
+    font-size: 1.8rem;
+    line-height: 1;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s;
+  }
+  #about-lightbox-close:hover {
+    background: rgba(255,255,255,.3);
+  }
+  .about-lb-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    transition: background .15s;
+  }
+  .about-lb-nav:hover { background: rgba(180,83,9,.5); }
+  .about-lb-prev { left: 1.5rem; }
+  .about-lb-next { right: 1.5rem; }
+</style>
+
+<section class="section" id="about">
+  <div class="section-header reveal">
+    <span class="section-num">01 —</span>
+    <h2 class="section-title">O projektu</h2>
+  </div>
+
+  <!-- Pull quote -->
+ 
+
+  <div class="about-grid">
+
+    <!-- ── Levý sloupec: text ── -->
+    <div class="about-body reveal-left">
+
+      <span class="about-label">Proč stavíme</span>
+      <p class="about-text">
+        Stávající sklad nám věrně sloužil mnoho let, ale dřevo doslova dožívá —
+        prohnilé trámy, propadající podlaha a střecha porostlá mechem říkají jasné <em>dost</em>.
+        Opravovat by nemělo smysl, je čas postavit něco nového a lepšího.
+      </p>
+
+      <span class="about-label">K čemu bude sloužit</span>
+      <p class="about-text">
+        Nová budova převezme funkci skladu — suché a bezpečné místo pro stany,
+        plachty, podlážky, karimatky a veškerý táborový materiál.
+        Díky <strong>většímu půdorysu 6 × 3 m</strong> konečně  vše
+        bez skládání věcí přes sebe a bez každoroční hry „kde to je".
+      </p>
+
+      <div class="about-highlight">
+        <span class="about-highlight-val">6 × 3 m</span>
+        <span class="about-highlight-desc">Nový půdorys — více místa než stávající sklad, s plnohodnotným vstupem 200 × 200 cm</span>
+      </div>
+
+      <div class="about-highlight">
+        <span class="about-highlight-val">20+ let</span>
+        <span class="about-highlight-desc">Navržená životnost s minimální údržbou — KVH profily, Bochemit a lazura LUXOL</span>
+      </div>
+
+      <div class="about-highlight">
+        <span class="about-highlight-val">Nový vzhled</span>
+        <span class="about-highlight-desc">Ćistá dřevěná fasáda, místo rozpadlých prken — budova, na kterou budou skauti hrdí</span>
+      </div>
+
+    </div>
+
+    <!-- ── Pravý sloupec: fotky ── -->
+    <div class="about-photos reveal-right">
+      <span class="about-photos-label">Fotky stávající budovy</span>
+      <div class="about-photo-grid">
+        <div class="about-photo-wrap">
+          <img
+            src="Fotky/0-02-05-18a45c428537dd2006df13d8a58924576535f1f3513b7dc61d2af95fbc7e57b4_7b32d03bd97800e9 - kopie.jpg"
+            alt="Stávající sklad — pohled ze strany, viditelné poškození dřeva"
+            loading="lazy"
+          >
+        </div>
+        <div class="about-photo-wrap">
+          <img
+            src="Fotky/0-02-05-0dab1ca5c0e502bc52267bd429841da867f0f7019492d3faf1f5d6b02dbc8b92_185c20836b4f9541 - kopie.jpg"
+            alt="Stávající sklad — přední pohled"
+            loading="lazy"
+          >
+        </div>
+        <div class="about-photo-wrap">
+          <img
+            src="Fotky/0-02-05-53550f3247dc13daa76fed09393af445c8aa0ffacb2189789e03162b4bbe281b_b26d736bbf37c422.jpg"
+            alt="Stávající sklad — střecha porostlá mechem"
+            loading="lazy"
+          >
+        </div>
+        <div class="about-photo-wrap">
+          <img
+            src="Fotky/0-02-05-3ef58c7d9276e9ea4d8a29ba1cd4181c7c335334fdd5987f33401021bd3e9a17_a3698f072e591110 - kopie.jpg"
+            alt="Stávající sklad — pohled z dálky"
+            loading="lazy"
+          >
+        </div>
+      </div>
+      <!-- Proč nestačí -->
+      <div class="about-reason">
+        <div class="about-reason-title">Proč stávající sklad nestačí</div>
+        <ul class="about-reason-list">
+          <li>Dřevěná konstrukce je po letech ve špatném stavu a dožívá</li>
+          <li>Nedostatečná kapacita — vybavení se tam prostě nevejde</li>
+          <li>Nová budova převezme funkci skladu — na jiném místě, s lepším zázemím</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox overlay -->
+<div id="about-lightbox" role="dialog" aria-modal="true" aria-label="Zvětšená fotka">
+  <button id="about-lightbox-close" aria-label="Zavřít">&#x2715;</button>
+  <button class="about-lb-nav about-lb-prev" id="about-lb-prev" aria-label="Předchozí">&#x2039;</button>
+  <img id="about-lightbox-img" src="" alt="">
+  <button class="about-lb-nav about-lb-next" id="about-lb-next" aria-label="Další">&#x203A;</button>
+</div>
+
+<script>
+  (function () {
+    const lightbox = document.getElementById('about-lightbox');
+    const lbImg    = document.getElementById('about-lightbox-img');
+    const lbClose  = document.getElementById('about-lightbox-close');
+    const lbPrev   = document.getElementById('about-lb-prev');
+    const lbNext   = document.getElementById('about-lb-next');
+
+    const wraps = Array.from(document.querySelectorAll('#about .about-photo-wrap'));
+    const photos = wraps.map(wrap => {
+      const img = wrap.querySelector('img');
+      return { src: img.src, alt: img.alt };
+    });
+
+    let current = 0;
+
+    function lbOpen(index) {
+      current = (index + photos.length) % photos.length;
+      lbImg.src = photos[current].src;
+      lbImg.alt = photos[current].alt;
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    wraps.forEach((wrap, i) => {
+      wrap.addEventListener('click', () => lbOpen(i));
+    });
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    lbClose.addEventListener('click', closeLightbox);
+    lbPrev.addEventListener('click', () => lbOpen(current - 1));
+    lbNext.addEventListener('click', () => lbOpen(current + 1));
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', e => {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape')     closeLightbox();
+      if (e.key === 'ArrowRight') lbOpen(current + 1);
+      if (e.key === 'ArrowLeft')  lbOpen(current - 1);
+    });
+  })();
+</script>
+
+<hr class="divider">

@@ -1,0 +1,332 @@
+<!-- ══════════════════════════════════════════════════════
+     visualization.html — 3D vizualizace (Three.js viewer)
+     ══════════════════════════════════════════════════════ -->
+<style>
+  /* Three.js viewer — z-index nižší než navbar (1000) */
+  #viewer-wrap {
+    position: relative; border-radius: 20px;
+    overflow: hidden; background: var(--cream-deep);
+    border: 1px solid var(--border);
+    height: 520px;
+    z-index: 1;
+  }
+  #three-canvas { width: 100% !important; height: 100% !important; display: block; }
+
+  #viewer-loading {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1rem;
+    background: var(--cream-deep);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #viewer-placeholder {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 1rem; padding: 2rem; text-align: center;
+  }
+  #viewer-placeholder.visible { display: flex; }
+  .ph-icon { font-size: 3rem; }
+  .ph-title { font-size: 1.1rem; font-weight: 700; color: var(--brown); }
+  .ph-steps {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem 1.5rem;
+    text-align: left; font-size: .82rem; color: var(--brown-mid);
+    line-height: 1.9; max-width: 380px;
+  }
+  .ph-steps code {
+    background: var(--cream-deep); border-radius: 4px;
+    padding: .1em .4em; font-size: .78rem; color: var(--amber);
+  }
+
+  #viewer-controls {
+    position: absolute; bottom: 1.2rem; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: center; gap: .75rem;
+    opacity: 0;
+  }
+  .viewer-hint {
+    background: rgba(44,24,16,.65); color: rgba(255,255,255,.8);
+    border-radius: 100px; padding: .35rem .9rem;
+    font-size: .72rem; letter-spacing: .03em;
+  }
+  #btn-rotate {
+    background: var(--amber); color: #fff;
+    border: none; border-radius: 100px;
+    padding: .35rem .9rem; font-size: .72rem;
+    font-weight: 700; cursor: pointer; transition: background .2s;
+    font-family: 'DM Sans', sans-serif; letter-spacing: .03em;
+  }
+  #btn-rotate:hover { background: var(--amber-dark); }
+
+  /* ── Fáze UI ── */
+  .phase-bar {
+    display: flex;
+    gap: .4rem;
+    margin-bottom: .75rem;
+    flex-wrap: wrap;
+  }
+  .phase-btn {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    padding: .3rem .85rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--brown-mid);
+    transition: border-color .2s, background .2s, color .2s;
+    white-space: nowrap;
+  }
+  .phase-btn.active {
+    border-color: var(--amber);
+    background: var(--amber);
+    color: #fff;
+  }
+  .phase-btn:not(.active):hover {
+    border-color: var(--amber);
+    color: var(--brown);
+  }
+</style>
+
+<section class="section" id="model3d">
+  <div class="section-header reveal">
+    <span class="section-num">03 —</span>
+    <h2 class="section-title">3D vizualizace</h2>
+    <p class="section-sub">Ovládej model myší — táhni pro rotaci, scroll pro zoom.</p>
+  </div>
+  <!-- Fáze tlačítka -->
+  <div class="phase-bar reveal" id="phase-bar" style="display:none">
+    <button class="phase-btn active" data-phase="1">Fáze 1 — Základy</button>
+    <button class="phase-btn" data-phase="2">Fáze 2 — Rám stěn</button>
+    <button class="phase-btn" data-phase="3">Fáze 3 — Opláštění</button>
+    <button class="phase-btn" data-phase="4">Fáze 4 — Střecha</button>
+  </div>
+
+  <div id="viewer-wrap" class="reveal">
+    <canvas id="three-canvas"></canvas>
+    <div id="viewer-loading">
+      <div class="spinner"></div>
+      <span style="font-size:.82rem;color:var(--brown-light)">Načítám 3D model…</span>
+    </div>
+    <div id="viewer-placeholder">
+      <div class="ph-icon">📦</div>
+      <div class="ph-title">3D model zatím není k dispozici</div>
+      <div class="ph-steps">
+        <strong>Export z Blenderu:</strong><br>
+        1. Otevři <code>ORV - V.4.blend</code><br>
+        2. <code>File → Export → glTF 2.0 (.glb)</code><br>
+        3. Ulož jako <code>model.glb</code> do stejné složky jako <code>index.html</code><br>
+        4. Obnov stránku — model se automaticky načte.
+      </div>
+    </div>
+    <div id="viewer-controls">
+      <span class="viewer-hint">🖱 Táhni · Scroll zoom</span>
+      <button id="btn-rotate">⏸ Zastavit rotaci</button>
+    </div>
+  </div>
+
+</section>
+
+<hr class="divider">
+
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  // ── Definice fází ──────────────────────────────────────────
+  const PHASES = [
+    {
+      label: 'Základy',
+      collections: [
+        { prefix: 'podlaha_', color: 0xC8A882 },
+        { prefix: 'patky_',   color: 0xE8E0D5 },
+      ]
+    },
+    {
+      label: 'Rám stěn',
+      collections: [
+        { prefix: 'framework_sten_', color: 0x6B4226 },
+      ]
+    },
+    {
+      label: 'Opláštění',
+      collections: [
+        { prefix: 'steny_palubky_', color: 0xC8A882 },
+      ]
+    },
+    {
+      label: 'Střecha',
+      collections: [
+        { prefix: 'podklad_strechy_', color: 0x6B4226 },
+        { prefix: 'strecha_',         color: 0x6B4226 },
+      ]
+    },
+  ];
+
+  // ── Three.js setup ─────────────────────────────────────────
+  const canvas      = document.getElementById('three-canvas');
+  const loading     = document.getElementById('viewer-loading');
+  const placeholder = document.getElementById('viewer-placeholder');
+  const controls_ui = document.getElementById('viewer-controls');
+  const btnRotate   = document.getElementById('btn-rotate');
+  const wrap        = document.getElementById('viewer-wrap');
+  const phaseBar    = document.getElementById('phase-bar');
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight, false);
+  renderer.shadowMap.enabled = true;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf5e6cc);
+
+  const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.01, 1000);
+  camera.position.set(6, 4, 8);
+
+  // Osvětlení
+  scene.add(new THREE.AmbientLight(0xfff4e0, 1.2));
+  const sun = new THREE.DirectionalLight(0xfff0cc, 2.5);
+  sun.position.set(5, 10, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xc4a880, 0.6);
+  fill.position.set(-5, 3, -5);
+  scene.add(fill);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.keys = {};
+  controls.enableDamping    = true;
+  controls.dampingFactor    = 0.07;
+  controls.autoRotate       = true;
+  controls.autoRotateSpeed  = 1.2;
+  controls.minDistance      = 2;
+  controls.maxDistance      = 30;
+
+  controls.addEventListener('start', () => {
+    controls.autoRotate = false;
+    btnRotate.textContent = '▶ Spustit rotaci';
+  });
+
+  btnRotate.addEventListener('click', () => {
+    controls.autoRotate = !controls.autoRotate;
+    btnRotate.textContent = controls.autoRotate ? '⏸ Zastavit rotaci' : '▶ Spustit rotaci';
+  });
+
+  window.addEventListener('resize', () => {
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h, false);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ── Fáze logika ────────────────────────────────────────────
+  // nodePhaseMap: Map<Object3D, phaseIndex (1-based)>
+  const nodePhaseMap = new Map();
+  let currentPhase = 1;
+
+  // Zjistí fázi (1–4) pro daný node name, nebo null
+  function getPhaseForName(name) {
+    for (let i = 0; i < PHASES.length; i++) {
+      for (const col of PHASES[i].collections) {
+        if (name.startsWith(col.prefix)) return i + 1;
+      }
+    }
+    return null;
+  }
+
+  // Vrátí barvu pro daný node name
+  function getColorForName(name) {
+    for (const phase of PHASES) {
+      for (const col of phase.collections) {
+        if (name.startsWith(col.prefix)) return col.color;
+      }
+    }
+    return null;
+  }
+
+  // Aplikuje viditelnost podle aktuální fáze
+  function applyPhase(phaseNum) {
+    currentPhase = phaseNum;
+    nodePhaseMap.forEach((phase, obj) => {
+      obj.visible = phase <= phaseNum;
+    });
+    // Aktualizuj tlačítka
+    document.querySelectorAll('.phase-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.phase) === phaseNum);
+    });
+  }
+
+  // Tlačítka fází
+  document.querySelectorAll('.phase-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyPhase(parseInt(btn.dataset.phase)));
+  });
+
+  // ── Načtení GLB ────────────────────────────────────────────
+  const loader  = new GLTFLoader();
+  const glbPath = 'model_komplet.glb';
+
+  fetch(glbPath, { method: 'HEAD' })
+    .then(r => {
+      if (!r.ok) throw new Error('not found');
+      return loader.loadAsync(glbPath);
+    })
+    .then(gltf => {
+      scene.add(gltf.scene);
+
+      // Obarvení a mapování fází
+      gltf.scene.traverse(obj => {
+        if (!obj.isMesh) return;
+        const phase = getPhaseForName(obj.name);
+        const color = getColorForName(obj.name);
+        if (phase !== null) {
+          nodePhaseMap.set(obj, phase);
+          obj.material = new THREE.MeshStandardMaterial({
+            color,
+            roughness: 0.75,
+            metalness: 0.05,
+          });
+          obj.visible = false; // skryto, applyPhase nastaví
+        }
+      });
+
+      // Vystředění a kamera
+      const box    = new THREE.Box3().setFromObject(gltf.scene);
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      gltf.scene.position.sub(center);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      camera.position.set(maxDim * 1.5, maxDim, maxDim * 1.5);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      // Zobrazit fázi 1
+      applyPhase(1);
+
+      // Zobrazit UI
+      gsap.to(loading, { opacity: 0, duration: .4, onComplete: () => loading.style.display = 'none' });
+      gsap.fromTo(controls_ui, { opacity: 0 }, { opacity: 1, duration: .6, delay: .2 });
+      phaseBar.style.display = 'flex';
+    })
+    .catch(() => {
+      loading.style.display = 'none';
+      placeholder.classList.add('visible');
+    });
+</script>

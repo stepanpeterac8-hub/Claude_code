@@ -1,0 +1,416 @@
+<!-- ══════════════════════════════════════════════════════
+     summary.html — Závěrečný snímek
+     ══════════════════════════════════════════════════════ -->
+<style>
+  #summary {
+    min-height: 100vh;
+    background: var(--brown);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4.5rem 2rem 3.5rem;
+    position: relative;
+    overflow: clip;
+  }
+
+  /* Jemné světelné kruhy v pozadí */
+  #summary::before {
+    content: '';
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(196,168,128,.07) 0%, transparent 70%);
+    top: -200px; right: -200px;
+    pointer-events: none;
+  }
+  #summary::after {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,83,9,.06) 0%, transparent 70%);
+    bottom: -150px; left: -100px;
+    pointer-events: none;
+  }
+
+  .summary-inner {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  /* ── HLAVIČKA ── */
+  .summary-head {
+    text-align: center;
+  }
+
+  .summary-eyebrow {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: .9rem;
+  }
+
+  .summary-head h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    color: var(--cream);
+    line-height: 1.08;
+    margin-bottom: .6rem;
+  }
+
+  .summary-head h2 em {
+    font-style: italic;
+    color: var(--gold-pale);
+  }
+
+  .summary-head p {
+    font-size: .92rem;
+    color: var(--gold);
+    letter-spacing: .04em;
+  }
+
+  /* ── 4 STATISTIKY ── */
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    border: 1px solid rgba(196,168,128,.15);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 600px) {
+    .summary-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .summary-stat {
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .3rem;
+    border-right: 1px solid rgba(196,168,128,.12);
+    background: rgba(255,255,255,.03);
+  }
+  .summary-stat:last-child { border-right: none; }
+
+  .summary-stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.1rem;
+    color: var(--gold-pale);
+    line-height: 1;
+  }
+
+  .summary-stat-unit {
+    font-size: .67rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  .summary-stat-lbl {
+    font-size: .75rem;
+    color: var(--gold);
+    margin-top: .15rem;
+    text-align: center;
+  }
+
+  /* ── 3 PILÍŘE ── */
+  .summary-pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    width: 100%;
+    background: rgba(196,168,128,.12);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 640px) {
+    .summary-pillars { grid-template-columns: 1fr; }
+  }
+
+  .summary-pillar {
+    background: rgba(44,24,16,.7);
+    padding: 1.5rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+  }
+
+  .pillar-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .pillar-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--cream);
+  }
+
+  .pillar-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+
+  .pillar-items li {
+    font-size: .82rem;
+    color: var(--gold);
+    padding-left: 1rem;
+    position: relative;
+    line-height: 1.45;
+  }
+
+  .pillar-items li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--amber);
+    font-size: .75rem;
+  }
+
+  /* ── SPODNÍ PODPIS ── */
+  .summary-sign {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(196,168,128,.12);
+    width: 100%;
+    text-align: center;
+  }
+
+  .summary-sign-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--cream-mid);
+    letter-spacing: .02em;
+  }
+
+  .summary-sign-meta {
+    font-size: .72rem;
+    color: var(--brown-light);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  /* ── PLOVOUCÍ ČÁSTICE ── */
+  #summary-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Animace */
+  .summary-anim {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+
+  /* Stat counter animace */
+  .summary-stat-val {
+    display: inline-block;
+  }
+</style>
+
+<canvas id="summary-canvas"></canvas>
+
+<section id="summary">
+  <div class="summary-inner">
+
+    <!-- Hlavička -->
+    <div class="summary-head summary-anim">
+      <span class="summary-eyebrow">Závěr projektu</span>
+      <h2>Stavba <em>ORV</em><br>od základů.</h2>
+      <p>Skautské středisko · svépomocná stavba · 2026</p>
+    </div>
+
+    <!-- Statistiky -->
+    <div class="summary-stats summary-anim">
+      <div class="summary-stat">
+        <span class="summary-stat-val">6×3</span>
+        <span class="summary-stat-unit">metry</span>
+        <span class="summary-stat-lbl">Půdorys stavby</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-val">135 000</span>
+        <span class="summary-stat-unit">Kč</span>
+        <span class="summary-stat-lbl">Celkový rozpočet</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-val">4+1</span>
+        <span class="summary-stat-unit">lidé</span>
+        <span class="summary-stat-lbl">Parta stavitelů</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-val">8/2026</span>
+        <span class="summary-stat-unit">termín</span>
+        <span class="summary-stat-lbl">Plánované dokončení</span>
+      </div>
+    </div>
+
+    <!-- 3 pilíře -->
+    <div class="summary-pillars summary-anim">
+      <div class="summary-pillar">
+        <!-- <span class="pillar-icon">🏗️</span> -->
+        <span class="pillar-title">Konstrukce</span>
+        <ul class="pillar-items">
+          <li>Dřevěná rámová stavba</li>
+          <li>KVH profily + Bochemit</li>
+          <li>Vstup 200 × 200 cm</li>
+          <li>Polykarbonátová okna</li>
+          <li>Lazura LUXOL</li>
+        </ul>
+      </div>
+      <div class="summary-pillar">
+        <!-- <span class="pillar-icon">📅</span> -->
+        <span class="pillar-title">Postup</span>
+        <ul class="pillar-items">
+          <li>Duben — základy, nákup</li>
+          <li>Květen — podlaha, rám</li>
+          <li>Červen — stěny, opláštění</li>
+          <li>Červenec — střecha, dveře</li>
+          <li>Srpen — dokončení, nátěr</li>
+        </ul>
+      </div>
+      <div class="summary-pillar">
+        <!-- <span class="pillar-icon">💰</span> -->
+        <span class="pillar-title">Rozpočet</span>
+        <ul class="pillar-items">
+          <li>Stěny ~47 000 Kč (35 %)</li>
+          <li>Střecha ~34 000 Kč (25 %)</li>
+          <li>Podlaha ~33 000 Kč (24 %)</li>
+          <li>Rezerva ~15 000 Kč (11 %)</li>
+          <li>Povrch ~6 000 Kč (4 %)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Podpis -->
+    <div class="summary-sign">
+      <span class="summary-sign-title">Nová skladovací budova — postavená vlastními rukama.</span>
+      <span class="summary-sign-meta">Stavba ORV · Skautské středisko · Projektová dokumentace 2026</span>
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function () {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+
+  const navbar  = document.getElementById('navbar');
+  const section = document.getElementById('summary');
+  const canvas  = document.getElementById('summary-canvas');
+
+  /* ── 1. Navbar dark toggle ── */
+  ScrollTrigger.create({
+    trigger: section,
+    start: 'top 80px',
+    end: 'bottom top',
+    onEnter:      () => navbar && navbar.classList.add('dark'),
+    onLeaveBack:  () => navbar && navbar.classList.remove('dark'),
+    onLeave:      () => navbar && navbar.classList.remove('dark'),
+    onEnterBack:  () => navbar && navbar.classList.add('dark'),
+  });
+
+  /* ── 2. Plovoucí částice na canvas ── */
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [], raf;
+
+    function resize() {
+      W = canvas.width  = section.offsetWidth;
+      H = canvas.height = section.offsetHeight;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 38; i++) {
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.6 + .4,
+        vx: (Math.random() - .5) * .35,
+        vy: (Math.random() - .5) * .35,
+        a: Math.random() * .45 + .08,
+      });
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, W, H);
+      for (const p of particles) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(196,168,128,${p.a})`;
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(drawParticles);
+    }
+
+    // Spusť částice až při vstupu
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top 90%',
+      once: true,
+      onEnter: () => {
+        gsap.to(canvas, { opacity: 1, duration: 1.2 });
+        drawParticles();
+      }
+    });
+  }
+
+  /* ── 3. Obsah — staggered vstup ── */
+  document.querySelectorAll('#summary .summary-anim').forEach((el, i) => {
+    ScrollTrigger.create({
+      trigger: el, start: 'top 88%', once: true,
+      onEnter: () => gsap.to(el, { opacity: 1, y: 0, duration: .75, delay: i * .18, ease: 'power3.out' })
+    });
+  });
+
+  /* ── 5. Stats — scale punch při vstupu ── */
+  ScrollTrigger.create({
+    trigger: '#summary .summary-stats', start: 'top 82%', once: true,
+    onEnter: () => {
+      gsap.from('#summary .summary-stat', {
+        scale: .85, opacity: 0, duration: .55,
+        stagger: .1, ease: 'back.out(1.6)', delay: .2
+      });
+    }
+  });
+
+  /* ── 6. Pilíře — slide zleva/zprava ── */
+  ScrollTrigger.create({
+    trigger: '#summary .summary-pillars', start: 'top 82%', once: true,
+    onEnter: () => {
+      gsap.from('#summary .summary-pillar', {
+        x: (i) => i === 0 ? -60 : i === 2 ? 60 : 0,
+        y: (i) => i === 1 ? 40 : 0,
+        opacity: 0, duration: .7,
+        stagger: .12, ease: 'power3.out', delay: .1
+      });
+    }
+  });
+
+})();
+</script>

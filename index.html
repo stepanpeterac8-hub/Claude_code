@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stavba ORV — Projektová dokumentace 2026</title>
+
+  <!-- Fonty -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,900&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- Three.js importmap -->
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"}}</script>
+
+  <!-- Sdílené styly -->
+  <link rel="stylesheet" href="css/shared.css">
+
+  <style>
+    /* ── CURSOR ──────────────────────────────────────── */
+    * { cursor: none !important; }
+
+    #cursor-dot {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: var(--amber);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform .08s ease, opacity .2s;
+      mix-blend-mode: multiply;
+    }
+    #cursor-ring {
+      position: fixed;
+      width: 32px; height: 32px;
+      border: 1.5px solid rgba(180,83,9,.45);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9997;
+      transform: translate(-50%, -50%);
+      transition: transform .18s cubic-bezier(.2,.8,.2,1), width .2s, height .2s, opacity .2s;
+    }
+    /* Zvětšení prstence nad klikatelným prvkem */
+    a:hover ~ #cursor-ring,
+    button:hover ~ #cursor-ring { width: 48px; height: 48px; }
+
+    /* Canvas pro zlaté částice */
+    #cursor-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9996;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── CURSOR ELEMENTS ─────────────────────────────── -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+  <canvas id="cursor-canvas"></canvas>
+
+  <!-- LOADER — zmizí až se načtou všechny sekce -->
+  <div id="loader">
+    <div id="loader-text">Stavíme dům…</div>
+    <div id="loader-bar"></div>
+  </div>
+
+  <!-- Sem se načítají všechny sekce -->
+  <div id="app"></div>
+
+  <!-- ── CURSOR FOLLOWER SCRIPT ───────────────────────── -->
+  <script>
+    (function() {
+      const dot    = document.getElementById('cursor-dot');
+      const ring   = document.getElementById('cursor-ring');
+      const canvas = document.getElementById('cursor-canvas');
+      const ctx    = canvas.getContext('2d');
+
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      let mx = -100, my = -100;
+      let rx = -100, ry = -100;
+      const particles = [];
+
+      // Zlaté částice — dřevěné třísky
+      class Particle {
+        constructor(x, y) {
+          this.x  = x + (Math.random() - .5) * 8;
+          this.y  = y + (Math.random() - .5) * 8;
+          this.vx = (Math.random() - .5) * 1.2;
+          this.vy = (Math.random() - .5) * 1.2 - .4;
+          this.life = 1;
+          this.decay = .025 + Math.random() * .02;
+          this.size  = 1.5 + Math.random() * 2.5;
+          // Zlaté odstíny
+          const colors = ['#c4a880','#b45309','#e7c89a','#92400e','#fdf0d8'];
+          this.color = colors[Math.floor(Math.random() * colors.length)];
+          this.rot   = Math.random() * Math.PI * 2;
+          this.rotV  = (Math.random() - .5) * .1;
+          // Tvar: buď elipsa (tříska) nebo čtverec (piliny)
+          this.shape = Math.random() > .4 ? 'chip' : 'dust';
+        }
+        update() {
+          this.x    += this.vx;
+          this.y    += this.vy;
+          this.vy   += .04; // gravitace
+          this.vx   *= .97;
+          this.life -= this.decay;
+          this.rot  += this.rotV;
+        }
+        draw(ctx) {
+          if (this.life <= 0) return;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.life) * .85;
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rot);
+          ctx.fillStyle = this.color;
+          if (this.shape === 'chip') {
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.size * 1.8, this.size * .6, 0, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(-this.size * .5, -this.size * .5, this.size, this.size);
+          }
+          ctx.restore();
+        }
+      }
+
+      let lastX = -100, lastY = -100, frameCount = 0;
+
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX;
+        my = e.clientY;
+        // Spawn částice při pohybu
+        const dx = mx - lastX, dy = my - lastY;
+        const speed = Math.sqrt(dx*dx + dy*dy);
+        if (speed > 2 && frameCount % 2 === 0) {
+          const n = Math.min(3, Math.floor(speed / 8));
+          for (let i = 0; i < n; i++) particles.push(new Particle(mx, my));
+        }
+        lastX = mx; lastY = my;
+      });
+
+      // Dot sleduje myš přímo
+      document.addEventListener('mousemove', e => {
+        dot.style.left  = e.clientX + 'px';
+        dot.style.top   = e.clientY + 'px';
+      });
+
+      // Skrýt kurzor mimo okno
+      document.addEventListener('mouseleave', () => {
+        dot.style.opacity = '0';
+        ring.style.opacity = '0';
+      });
+      document.addEventListener('mouseenter', () => {
+        dot.style.opacity = '1';
+        ring.style.opacity = '1';
+      });
+
+      // Klik efekt — burst
+      document.addEventListener('click', e => {
+        for (let i = 0; i < 10; i++) particles.push(new Particle(e.clientX, e.clientY));
+      });
+
+      // Animační smyčka
+      function loop() {
+        frameCount++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Plynulé sledování prstence (lag)
+        rx += (mx - rx) * .12;
+        ry += (my - ry) * .12;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+
+        // Vykreslit částice
+        for (let i = particles.length - 1; i >= 0; i--) {
+          particles[i].update();
+          particles[i].draw(ctx);
+          if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+        requestAnimationFrame(loop);
+      }
+      loop();
+    })();
+  </script>
+
+  <!-- ── SECTION LOADER ───────────────────────────────── -->
+  <script>
+    const sections = [
+      'sections/header.html',
+      'sections/hero.html',
+      'sections/about.html',
+      'sections/comparison.html',
+      'sections/visualization.html',
+      'sections/timeline.html',
+      'sections/location.html',
+      'sections/budget.html',
+      'sections/materials.html',
+      'sections/drawings.html',
+      'sections/summary.html',
+    ];
+
+    Promise.all(sections.map(s => fetch(s).then(r => {
+      if (!r.ok) throw new Error('Nelze načíst: ' + s);
+      return r.text();
+    })))
+    .then(htmls => {
+      const app = document.getElementById('app');
+
+      // Extrahuj module i non-module skripty před vložením do innerHTML
+      // (skripty v innerHTML se neparsují spolehlivě a mohou přetrhnout DOM)
+      const moduleScripts = [];
+      const inlineScripts = [];
+
+      const sanitized = htmls.map((html, idx) => {
+        // Live Server injektuje své reload skripty do každého HTML fragmentu a tím
+        // ořezává response. Odstraníme je z raw textu před parsováním.
+        // Marker: Live Server skripty vždy obsahují "// <![CDATA[" a "WebSocket".
+        // Použijeme split na <script> tagy a filtrujeme Live Server bloky.
+        const parts = html.split('<script');
+        const cleanParts = [parts[0]];
+        const ourScripts = [];
+        for (let i = 1; i < parts.length; i++) {
+          const chunk = parts[i];
+          const CLOSE = '<' + '/script';
+          const closeIdx = chunk.indexOf(CLOSE);
+          if (closeIdx === -1) continue; // neúplný blok — přeskoč
+          const body = chunk.slice(chunk.indexOf('>') + 1, closeIdx);
+          const attrs = chunk.slice(0, chunk.indexOf('>'));
+          // Zahod Live Server / WebSocket skripty a src skripty
+          if (body.includes('WebSocket') || body.includes('livereload') ||
+              body.includes('LiveReload') || body.includes('CDATA') ||
+              /\bsrc\s*=/.test(attrs)) {
+            cleanParts.push(chunk.slice(closeIdx + ('<' + '/script>').length));
+            continue;
+          }
+          const isModule = /\btype\s*=\s*["']module["']/.test(attrs);
+          if (isModule) {
+            moduleScripts.push({ code: body, file: sections[idx] });
+          } else {
+            ourScripts.push(body);
+          }
+          cleanParts.push(chunk.slice(closeIdx + ('<' + '/script>').length));
+        }
+        ourScripts.forEach(code => inlineScripts.push({ code, file: sections[idx] }));
+        const doc = new DOMParser().parseFromString(cleanParts.join(''), 'text/html');
+        return doc.head.innerHTML + doc.body.innerHTML;
+      });
+
+      // Vlož čisté HTML bez skriptů — innerHTML parsing proběhne bez přerušení
+      app.innerHTML = sanitized.join('\n');
+
+      // Spusť inline skripty
+      inlineScripts.forEach(({ code, file }) => {
+        console.log('[loader] spouštím inline skript z', file, '— délka:', code.length, '— začátek:', JSON.stringify(code.slice(0, 80)));
+        if (!code || !code.trim()) return;
+        try {
+          const s = document.createElement('script');
+          s.textContent = code;
+          document.body.appendChild(s);
+        } catch(e) {
+          console.error('[loader] chyba při spuštění inline skriptu z', file, ':', e.message);
+          console.error('[loader] začátek kódu:', code.slice(0, 200));
+        }
+      });
+
+      // Spusť module skripty
+      moduleScripts.forEach(({ code, file }) => {
+        try {
+          const s = document.createElement('script');
+          s.type = 'module';
+          s.textContent = code;
+          document.body.appendChild(s);
+        } catch(e) {
+          console.error('[loader] chyba při spuštění module skriptu z', file, ':', e.message);
+          console.error('[loader] začátek kódu:', code.slice(0, 200));
+        }
+      });
+
+      gsap.to('#loader', {
+        opacity: 0, duration: .5,
+        onComplete: () => document.getElementById('loader').style.display = 'none'
+      });
+
+      // Počkej na dokončení layoutu (obrázky, fonty) než inicializuješ GSAP,
+      // aby ScrollTrigger znal správné výšky všech sekcí
+      function startGSAP() {
+        initGSAP();
+        // Po initu sleduj změny výšky #app (lazy obrázky, web fonty)
+        // a obnov ScrollTrigger markery
+        let refreshTimer;
+        const ro = new ResizeObserver(() => {
+          clearTimeout(refreshTimer);
+          refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 150);
+        });
+        ro.observe(app);
+        setTimeout(() => ro.disconnect(), 8000); // přestaň sledovat po 8 s
+      }
+
+      if (document.readyState === 'complete') {
+        startGSAP();
+      } else {
+        window.addEventListener('load', startGSAP, { once: true });
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById('loader-text').textContent = 'Chyba načítání — otevři přes Live Server';
+    });
+
+    function initGSAP() {
+      try {
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Respektovat prefers-reduced-motion
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) gsap.globalTimeline.timeScale(100);
+
+      // ── Scroll progress bar ──────────────────────────────
+      gsap.to('#nav-progress', {
+        width: '100%', ease: 'none',
+        scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: true }
+      });
+
+      // ── Navbar border on scroll ──────────────────────────
+      ScrollTrigger.create({
+        start: 50,
+        onEnter:     () => document.getElementById('navbar').classList.add('scrolled'),
+        onLeaveBack: () => document.getElementById('navbar').classList.remove('scrolled'),
+      });
+
+      // ── Hero text reveal ─────────────────────────────────
+      const chars = document.querySelectorAll('.hero-title .char');
+      // Nastav výchozí stav okamžitě (bez delay) aby nedošlo k poskočení
+      gsap.set(chars, { y: '110%', opacity: 0 });
+      gsap.to(chars, { y: '0%', opacity: 1, duration: 1, ease: 'power4.out', stagger: .04, delay: .2 });
+      gsap.to('.hero-label', { opacity: 1, duration: .7, delay: .1 });
+      gsap.to('.hero-sub',   { opacity: 1, duration: .8, delay: .9 });
+      gsap.to('.hero-stats', { opacity: 1, duration: .8, delay: 1.1 });
+
+      // ── Hero counters (nový layout — budget jako 000 000) ─
+      const cBudget = { val: 0 };
+      gsap.to(cBudget, {
+        val: 120, duration: 1.8, ease: 'power2.out', delay: 1.2,
+        onUpdate: () => {
+          const el = document.getElementById('counter-budget');
+          if (el) el.textContent = Math.round(cBudget.val).toLocaleString('cs-CZ') + '\u00a0000';
+        }
+      });
+      const cPeople = { val: 0 };
+      gsap.to(cPeople, {
+        val: 4, duration: .8, ease: 'power2.out', delay: 1.3,
+        onUpdate: () => {
+          const el = document.getElementById('counter-wknds');
+          if (el) el.textContent = Math.round(cPeople.val);
+        }
+      });
+
+      // ── Generic scroll reveals ───────────────────────────
+      // OPRAVA: Vylučuje třídy s vlastním stagger, aby nedostaly DVOJE animace
+      function revealEl(selector, stagger) {
+        gsap.utils.toArray(selector).forEach((el, i) => {
+          gsap.fromTo(el,
+            { opacity: 0, y: el.classList.contains('reveal-left') ? 0 : el.classList.contains('reveal-right') ? 0 : 40,
+              x: el.classList.contains('reveal-left') ? -60 : el.classList.contains('reveal-right') ? 60 : 0 },
+            { opacity: 1, y: 0, x: 0, duration: .8, ease: 'power3.out',
+              delay: stagger ? i * stagger : 0,
+              scrollTrigger: { trigger: el, start: 'top 98%', once: true }
+            }
+          );
+        });
+      }
+
+      // .reveal — vyloučit prvky s vlastním stagger
+      revealEl('.reveal:not(.overview-card):not(.phase-card):not(.process-card)');
+      revealEl('.reveal-left');
+      revealEl('.reveal-right');
+      revealEl('.overview-card', .07);
+      revealEl('.phase-card',    .08);
+      revealEl('.process-card',  .1);
+
+      // ── Budget bars ───────────────────────────────────────
+      document.querySelectorAll('.budget-bar-fill').forEach(bar => {
+        gsap.to(bar, {
+          width: bar.dataset.pct + '%', duration: 1.2, ease: 'power3.out',
+          scrollTrigger: { trigger: bar, start: 'top 85%', once: true }
+        });
+      });
+
+      // ── Budget — animace řeší budget.html vlastním IntersectionObserver ──
+
+      // ── Tabs ─────────────────────────────────────────────
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.tab;
+          document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById('tab-' + tab).classList.add('active');
+        });
+      });
+
+      // ── Weekends grid ─────────────────────────────────────
+      const grid = document.getElementById('weekends-grid');
+      if (grid) {
+        const weekendData = [
+          'active','active','active','maybe','active',
+          'active','active','active','active','active',
+          'maybe','free','free','free','free'
+        ];
+        weekendData.forEach((type, i) => {
+          const cell = document.createElement('div');
+          cell.className = 'weekend-cell' + (type === 'active' ? ' active' : type === 'maybe' ? ' maybe' : '');
+          cell.textContent = String(i + 1).padStart(2, '0');
+          grid.appendChild(cell);
+        });
+        ScrollTrigger.create({
+          trigger: '#weekends-grid', start: 'top 80%', once: true,
+          onEnter: () => {
+            gsap.from('#weekends-grid .weekend-cell', {
+              scale: 0, opacity: 0, duration: .4, ease: 'back.out(1.5)', stagger: .04
+            });
+          }
+        });
+      }
+      // Refresh ScrollTrigger aby zachytil elementy již ve viewportu
+      ScrollTrigger.refresh();
+      } catch(e) { console.error('initGSAP error:', e); }
+    }
+  </script>
+
+  <!-- ── ARROW KEY SECTION SCROLL ─────────────────────── -->
+  <script>
+    (function () {
+      const SECTION_IDS = ['hero','about','compare','model3d','schedule','location','budget','materials','drawings','summary'];
+      let currentIndex = 0;
+      let isScrolling = false;
+
+      function navbarHeight() {
+        const nb = document.getElementById('navbar');
+        return nb ? nb.getBoundingClientRect().height : 0;
+      }
+
+      // Střed sekce ve viewportu (pod navbarem) — stejná metrika pro obě funkce
+      function sectionCenterDist(el) {
+        const nb = navbarHeight();
+        const viewH = document.documentElement.clientHeight - nb;
+        const rect = el.getBoundingClientRect();
+        const elCenter = rect.top - nb + rect.height / 2;
+        return Math.abs(elCenter - viewH / 2);
+      }
+
+      function getCurrentIndex() {
+        let best = 0, bestDist = Infinity;
+        SECTION_IDS.forEach((id, i) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const dist = sectionCenterDist(el);
+          if (dist < bestDist) { bestDist = dist; best = i; }
+        });
+        return best;
+      }
+
+      function scrollToSection(index) {
+        const el = document.getElementById(SECTION_IDS[index]);
+        if (!el) return;
+
+        currentIndex = index;
+        isScrolling = true;
+
+        // Harmonogram: zarovnej na horní okraj; ostatní: vycentruj
+        const nb = navbarHeight();
+        const rect = el.getBoundingClientRect();
+        let targetTop;
+        if (SECTION_IDS[index] === 'schedule' || SECTION_IDS[index] === 'drawings') {
+          targetTop = rect.top + window.scrollY - nb;
+        } else {
+          const viewH = document.documentElement.clientHeight - nb;
+          targetTop = rect.top + window.scrollY - nb - (viewH - rect.height) / 2;
+        }
+
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+
+        // Uvolni zámek po dokončení scrollu
+        const release = () => {
+          isScrolling = false;
+          if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+        };
+        // Záloha: uvolni nejpozději po 1.5 s
+        const fallback = setTimeout(release, 1500);
+        // Uvolni hned jak scroll skončí (klid 150 ms)
+        let quietTimer;
+        const onScroll = () => {
+          clearTimeout(quietTimer);
+          quietTimer = setTimeout(() => {
+            clearTimeout(fallback);
+            window.removeEventListener('scroll', onScroll);
+            release();
+          }, 150);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+      }
+
+      document.addEventListener('keydown', e => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (isScrolling) return; // ignoruj další stisk dokud scroll neskončí
+
+        const base = getCurrentIndex();
+        if (e.key === 'ArrowDown') {
+          const next = Math.min(base + 1, SECTION_IDS.length - 1);
+          if (next !== base) scrollToSection(next);
+        } else {
+          const prev = Math.max(base - 1, 0);
+          if (prev !== base) scrollToSection(prev);
+        }
+      }, { capture: true });
+    })();
+  </script>
+
+</body>
+</html>

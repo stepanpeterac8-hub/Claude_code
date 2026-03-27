@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where node:*)",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
+      "Bash(npx skills:*)",
+      "Bash(grep -oE 'children:\"\"\"\"[^\"\"\"\"]{5,80}\"\"\"\"')",
+      "Bash(grep -oE 'children:\"\"\"\"[^\"\"\"\"]{3,100}\"\"\"\"')",
+      "Bash(python -c \"import struct, json; data=open\\(''c:/Users/Stepa/Desktop/MIX/Claude_code/model.glb'',''rb''\\).read\\(\\); json_len=struct.unpack_from\\(''<I'',data,12\\)[0]; j=json.loads\\(data[20:20+json_len]\\); [print\\(m.get\\(''name'',''?''\\)\\) for m in j.get\\(''meshes'',[]\\)]\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const buf=fs.readFileSync\\(''c:/Users/Stepa/Desktop/MIX/Claude_code/model.glb''\\);const jsonLen=buf.readUInt32LE\\(12\\);const j=JSON.parse\\(buf.toString\\(''utf8'',20,20+jsonLen\\)\\);j.meshes.forEach\\(m=>console.log\\(m.name\\)\\);\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const data=fs.readFileSync\\(''c:/Users/Stepa/Desktop/MIX/Claude_code/model.glb''\\);const jsonLen=data.readUInt32LE\\(12\\);const j=JSON.parse\\(data.slice\\(20,20+jsonLen\\)\\);console.log\\(''=== NODES ===''\\);\\(j.nodes||[]\\).forEach\\(n=>console.log\\(n.name||''\\(no name\\)''\\)\\);console.log\\(''=== MESHES ===''\\);\\(j.meshes||[]\\).forEach\\(m=>console.log\\(m.name||''\\(no name\\)''\\)\\);\")",
+      "Bash(node -e \":*)",
+      "Bash(head -5 grep -rn \"section-num\\\\|\"\"section\"\"\" \"c:/Users/Stepa/Desktop/MIX/Claude_code/sections/materials.html\")",
+      "Bash(python -c \":*)",
+      "Bash(python3 -c \":*)",
+      "Bash(py -c \"import openpyxl; print\\(''ok''\\)\")",
+      "Bash(python \"c:/Users/Stepa/Desktop/MIX/Claude_code/read_xlsx.py\")",
+      "Bash(node -e \"console.log\\(''node ok''\\)\")",
+      "Bash(py -c \"from PIL import Image; print\\(''''ok''''\\)\")",
+      "Bash(pip install:*)",
+      "Read(//c/Users/Stepa/AppData/Roaming/Code/User/**)",
+      "Bash(find \"c:\\\\Users\\\\Stepa\\\\Desktop\\\\MIX\\\\Claude_code\" -name \"*.js\" -type f ! -path \"*/node_modules/*\" -exec wc -l {} +)",
+      "Bash(rm \"c:/Users/Stepa/Desktop/MIX/Claude_code/CLAUDE \\(1\\).md\")",
+      "Bash(rm \"c:/Users/Stepa/Desktop/MIX/Claude_code/sections/overview.html\")",
+      "Bash(rm \"c:/Users/Stepa/Desktop/MIX/Claude_code/sections/price.html\")",
+      "Bash(rm \"c:/Users/Stepa/Desktop/MIX/Claude_code/sections/location2.html\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Stepa\\Desktop\\MIX\\Claude_code",
+      "c:\\Users\\Stepa\\Desktop\\MIX\\Claude_code_BACKUP_2026-03-27\\sections",
+      "c:\\Users\\Stepa\\Desktop\\MIX\\Claude_code_BACKUP_2026-03-27"
+    ]
+  }
+}

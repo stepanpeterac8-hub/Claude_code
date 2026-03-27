@@ -1,0 +1,187 @@
+<!-- ══════════════════════════════════════════════════════
+     hero.html — Nová skladovací budova (hlavní hero sekce)
+     ══════════════════════════════════════════════════════ -->
+<style>
+  #hero {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 9rem 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Jemný teplý glow uprostřed pozadí */
+  #hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(196,168,128,.18) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Papírová textura */
+  #hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #hero > * { position: relative; z-index: 1; }
+
+  /* Label nad nadpisem */
+  .hero-label {
+    font-family: monospace;
+    font-size: 11px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: var(--brown-light);
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .hero-label-dot {
+    width: 5px; height: 5px;
+    background: var(--amber); border-radius: 50%;
+    display: inline-block;
+  }
+  .hero-label-sep {
+    width: 1px; height: 12px;
+    background: var(--border);
+    display: inline-block;
+  }
+
+  /* Hlavní nadpis */
+  .hero-title {
+    margin: 0 0 1.8rem;
+    line-height: .95;
+  }
+  .hero-title-line1 {
+    display: block;
+    font-size: clamp(5rem, 13vw, 10rem);
+    font-weight: 700;
+    color: var(--brown);
+    letter-spacing: -.02em;
+    overflow: hidden;
+    padding-bottom: .08em; /* zabrání ořezu descenderů */
+  }
+  .hero-title-line2 {
+    display: block;
+    font-size: clamp(5rem, 13vw, 10rem);
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: -.02em;
+    overflow: hidden;
+    padding-bottom: .08em;
+  }
+  .hero-title .char {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  /* Podtitulek */
+  .hero-sub {
+    font-size: clamp(.95rem, 1.6vw, 1.1rem);
+    color: var(--brown-mid);
+    max-width: 480px;
+    line-height: 1.65;
+    margin: 0 auto 3.5rem;
+    opacity: 0;
+  }
+
+  /* Stats */
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+  }
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .3rem;
+  }
+  .hero-stat-val {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .hero-stat-lbl {
+    font-family: monospace;
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--brown-light);
+  }
+  .hero-stat + .hero-stat {
+    border-left: 1px solid var(--border);
+    padding-left: 3rem;
+  }
+
+  @media (max-width: 600px) {
+    .hero-stats { gap: 1.5rem; }
+    .hero-stat + .hero-stat { border-left: none; padding-left: 0; }
+    .hero-stat { border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .hero-stat:last-child { border-bottom: none; }
+  }
+</style>
+
+<div id="hero">
+  <div class="hero-label">
+    <span class="hero-label-dot"></span>
+    Skautské středisko
+    <span class="hero-label-sep"></span>
+    Projektová dokumentace
+    <span class="hero-label-sep"></span>
+    2026
+  </div>
+
+  <h1 class="hero-title">
+    <span class="hero-title-line1" id="hw1">
+      <span class="char">S</span><span class="char">t</span><span class="char">a</span><span class="char">v</span><span class="char">b</span><span class="char">a</span>
+    </span>
+    <span class="hero-title-line2" id="hw2">
+      <span class="char">O</span><span class="char">R</span><span class="char">V</span>
+    </span>
+  </h1>
+
+  <p class="hero-sub">
+    Nová dřevěná skladovací budova 6&nbsp;×&nbsp;3&nbsp;m pro tábořiště,<br>pevná a postavená vlastníma rukama.
+  </p>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-val">~135&nbsp;000&nbsp;Kč</span>
+      <span class="hero-stat-lbl">Rozpočet</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">6 × 3 m</span>
+      <span class="hero-stat-lbl">Půdorys</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">Do 8/2026</span>
+      <span class="hero-stat-lbl">Termín</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">4+1&nbsp;</span>
+      <span class="hero-stat-lbl">Stavitelé</span>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">

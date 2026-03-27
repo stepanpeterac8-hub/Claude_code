@@ -1,0 +1,318 @@
+<!-- ══════════════════════════════════════════════════════
+     drawings.html — Technické výkresy
+     ══════════════════════════════════════════════════════ -->
+<style>
+  #drawings {
+    min-height: 100vh;
+    background: var(--cream);
+    padding: 5rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #drawings .section-label {
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: .75rem;
+  }
+
+  #drawings h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--brown);
+    text-align: center;
+    margin-bottom: .5rem;
+    line-height: 1.15;
+  }
+
+  #drawings .subtitle {
+    font-size: .95rem;
+    color: var(--brown-light);
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  /* ── GRID ── */
+  .drawings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  @media (max-width: 700px) {
+    .drawings-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── KARTA ── */
+  .drawing-card {
+    background: var(--cream-mid);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .25s, transform .25s;
+  }
+
+  .drawing-card:hover {
+    box-shadow: 0 8px 32px rgba(180,83,9,.12);
+    transform: translateY(-3px);
+  }
+
+  /* Záhlaví karty */
+  .drawing-card-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .9rem 1.2rem;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--cream-deep);
+  }
+
+  .drawing-card-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: .03em;
+  }
+
+  .drawing-card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: var(--brown);
+    line-height: 1.2;
+  }
+
+  .drawing-card-title small {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .72rem;
+    font-weight: 500;
+    color: var(--brown-light);
+    margin-top: .15rem;
+    letter-spacing: .04em;
+  }
+
+  /* Obrázkový prostor */
+  .drawing-card-img {
+    padding: 1rem;
+    background: #fff;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-in;
+  }
+
+  .drawing-card-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+    transition: transform .3s ease;
+  }
+
+  .drawing-card-img:hover img {
+    transform: scale(1.02);
+  }
+
+  /* ── LIGHTBOX ── */
+  #drawings-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(44, 24, 16, .88);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  #drawings-lightbox.open {
+    display: flex;
+  }
+
+  #drawings-lightbox img {
+    max-width: min(95vw, 1200px);
+    max-height: 90vh;
+    border-radius: 10px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    object-fit: contain;
+  }
+
+  #drawings-lightbox-close {
+    position: absolute;
+    top: 1.5rem; right: 1.5rem;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: #fff;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  #drawings-lightbox-close:hover {
+    background: var(--amber-dark);
+  }
+
+  #drawings-lightbox-caption {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(44,24,16,.75);
+    color: var(--gold-pale);
+    font-size: .82rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .45rem 1.1rem;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+
+  .drawings-lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    transition: background .15s;
+  }
+  .drawings-lb-nav:hover { background: rgba(180,83,9,.5); }
+  .drawings-lb-prev { left: 1.5rem; }
+  .drawings-lb-next { right: 1.5rem; }
+</style>
+
+<section id="drawings">
+  <p class="section-label">Projektová dokumentace</p>
+  <h2>Technické výkresy</h2>
+  <p class="subtitle">Konstrukční dokumentace stavby — kliknutím zobrazíte detail</p>
+
+  <div class="drawings-grid">
+
+    <div class="drawing-card">
+      <div class="drawing-card-header">
+        <div class="drawing-card-num">01</div>
+        <div class="drawing-card-title">
+          Čelní pohled
+          <small>Pohled zepředu · rozměry v cm</small>
+        </div>
+      </div>
+      <div class="drawing-card-img" data-src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110426.png" data-caption="Čelní pohled">
+        <img src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110426.png" alt="Technický výkres — čelní pohled" loading="lazy">
+      </div>
+    </div>
+
+    <div class="drawing-card">
+      <div class="drawing-card-header">
+        <div class="drawing-card-num">02</div>
+        <div class="drawing-card-title">
+          Boční pohled
+          <small>Pohled zboku · rozměry v cm</small>
+        </div>
+      </div>
+      <div class="drawing-card-img" data-src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110444.png" data-caption="Boční pohled">
+        <img src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110444.png" alt="Technický výkres — boční pohled" loading="lazy">
+      </div>
+    </div>
+
+    <div class="drawing-card">
+      <div class="drawing-card-header">
+        <div class="drawing-card-num">03</div>
+        <div class="drawing-card-title">
+          Řez konstrukcí
+          <small>Příčný řez · detail nosníků</small>
+        </div>
+      </div>
+      <div class="drawing-card-img" data-src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110455.png" data-caption="Boční pohled">
+        <img src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110455.png" alt="Technický výkres — řez konstrukcí" loading="lazy">
+      </div>
+    </div>
+
+    <div class="drawing-card">
+      <div class="drawing-card-header">
+        <div class="drawing-card-num">04</div>
+        <div class="drawing-card-title">
+          Půdorys
+          <small>Pohled shora · rozmístění sloupů</small>
+        </div>
+      </div>
+      <div class="drawing-card-img" data-src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110502.png" data-caption="Půdorys">
+        <img src="PDF_dokumenty/Snímek obrazovky 2026-03-26 110502.png" alt="Technický výkres — půdorys" loading="lazy">
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Lightbox overlay -->
+<div id="drawings-lightbox">
+  <button id="drawings-lightbox-close" aria-label="Zavřít">✕</button>
+  <button class="drawings-lb-nav drawings-lb-prev" id="drawings-lb-prev" aria-label="Předchozí">&#x2039;</button>
+  <img id="drawings-lightbox-img" src="" alt="">
+  <button class="drawings-lb-nav drawings-lb-next" id="drawings-lb-next" aria-label="Další">&#x203A;</button>
+  <div id="drawings-lightbox-caption"></div>
+</div>
+
+<script>
+  (function () {
+    const lb      = document.getElementById('drawings-lightbox');
+    const lbImg   = document.getElementById('drawings-lightbox-img');
+    const lbCap   = document.getElementById('drawings-lightbox-caption');
+    const lbClose = document.getElementById('drawings-lightbox-close');
+    const lbPrev  = document.getElementById('drawings-lb-prev');
+    const lbNext  = document.getElementById('drawings-lb-next');
+
+    const photos = Array.from(document.querySelectorAll('.drawing-card-img')).map(card => ({
+      src: card.dataset.src,
+      caption: card.dataset.caption
+    }));
+
+    let current = 0;
+
+    function lbOpen(index) {
+      current = (index + photos.length) % photos.length;
+      lbImg.src = photos[current].src;
+      lbCap.textContent = photos[current].caption + '  ·  ' + (current + 1) + ' / ' + photos.length;
+      lb.classList.add('open');
+    }
+
+    document.querySelectorAll('.drawing-card-img').forEach((card, i) => {
+      card.addEventListener('click', () => lbOpen(i));
+    });
+
+    lbClose.addEventListener('click', () => lb.classList.remove('open'));
+    lbPrev.addEventListener('click', () => lbOpen(current - 1));
+    lbNext.addEventListener('click', () => lbOpen(current + 1));
+    lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+    document.addEventListener('keydown', e => {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape')     lb.classList.remove('open');
+      if (e.key === 'ArrowRight') lbOpen(current + 1);
+      if (e.key === 'ArrowLeft')  lbOpen(current - 1);
+    });
+  })();
+</script>

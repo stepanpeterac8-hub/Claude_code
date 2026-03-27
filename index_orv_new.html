@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORV Projekt — Sklad tábořiště 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"}}</script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:       #fdf4e7;
+      --cream-mid:   #fdf0d8;
+      --cream-deep:  #f5e6cc;
+      --border:      #e7dcc8;
+      --amber:       #b45309;
+      --amber-dark:  #92400e;
+      --brown:       #2c1810;
+      --brown-mid:   #5a4a3a;
+      --brown-light: #8b7355;
+      --gold:        #c4a880;
+      --gold-pale:   #e7c89a;
+      --green:       #166534;
+      --purple:      #7c3aed;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--brown);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3 { font-family: 'DM Serif Display', serif; }
+
+    /* ── NAVBAR ─────────────────────────────────────── */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      background: rgba(253,244,231,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color .3s;
+    }
+    #navbar.scrolled { border-color: var(--border); }
+
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .9rem 2rem;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--brown);
+    }
+    .nav-logo-badge {
+      width: 32px; height: 32px; background: var(--amber); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px; font-weight: 900; font-family: monospace;
+      letter-spacing: -.5px;
+    }
+    .nav-logo-text { font-size: .85rem; font-weight: 700; letter-spacing: .02em; }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      text-decoration: none; font-size: .8rem; font-weight: 600;
+      color: var(--brown-light); letter-spacing: .04em; text-transform: uppercase;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--amber); }
+
+    #nav-progress {
+      position: absolute; bottom: 0; left: 0;
+      height: 2px; width: 0%; background: var(--amber);
+      transform-origin: left; will-change: width;
+    }
+
+    /* ── HERO ────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; padding: 8rem 2rem 4rem;
+      max-width: 1200px; margin: 0 auto;
+      position: relative;
+    }
+
+    .hero-label {
+      font-family: monospace; font-size: 11px; letter-spacing: .3em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
+      opacity: 0;
+    }
+
+    .hero-title {
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-weight: 400; line-height: 1;
+      color: var(--brown); margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .hero-title .word { display: inline-block; overflow: hidden; }
+    .hero-title .char { display: inline-block; }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.3rem); color: var(--brown-mid);
+      max-width: 560px; line-height: 1.6; margin-bottom: 3.5rem;
+      opacity: 0;
+    }
+
+    .hero-stats {
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+      opacity: 0;
+    }
+    .hero-stat {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 100px; padding: .6rem 1.4rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .hero-stat-val {
+      font-family: monospace; font-size: 1rem; font-weight: 900;
+      color: var(--amber);
+    }
+    .hero-stat-lbl {
+      font-size: .75rem; color: var(--brown-light); font-weight: 500;
+    }
+
+    .hero-scroll {
+      position: absolute; bottom: 2.5rem; left: 2rem;
+      display: flex; align-items: center; gap: .6rem;
+      font-family: monospace; font-size: 10px; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--gold);
+      opacity: 0;
+    }
+    .hero-scroll-arrow {
+      width: 18px; height: 18px; border: 1px solid var(--gold);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 9px;
+    }
+
+    /* ── DIVIDER ─────────────────────────────────────── */
+    .divider {
+      max-width: 1200px; margin: 0 auto;
+      border: none; border-top: 1px solid var(--border);
+    }
+
+    /* ── SECTION BASE ────────────────────────────────── */
+    .section {
+      max-width: 1200px; margin: 0 auto;
+      padding: 6rem 2rem;
+    }
+
+    .section-header { margin-bottom: 3rem; }
+    .section-num {
+      font-family: monospace; font-size: 11px; color: var(--gold);
+      letter-spacing: .2em; display: block; margin-bottom: .5rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400; color: var(--brown); line-height: 1.1;
+    }
+    .section-sub {
+      font-size: .9rem; color: var(--gold); margin-top: .75rem;
+    }
+
+    /* ── REVEAL UTILITY ──────────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(40px); }
+    .reveal-left { opacity: 0; transform: translateX(-60px); }
+    .reveal-right { opacity: 0; transform: translateX(60px); }
+
+    /* ── O PROJEKTU ──────────────────────────────────── */
+    #about .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
+    }
+    .about-text {
+      font-size: 1.05rem; line-height: 1.8; color: var(--brown-mid);
+    }
+    .about-quote {
+      font-family: 'DM Serif Display', serif; font-style: italic;
+      font-size: 1.4rem; color: var(--amber); line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .about-card {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    .about-stat {
+      background: var(--cream); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.1rem;
+    }
+    .about-stat-icon { font-size: 1.4rem; margin-bottom: .4rem; }
+    .about-stat-val {
+      font-family: monospace; font-size: 1rem; font-weight: 900;
+      color: var(--amber); margin-bottom: .15rem;
+    }
+    .about-stat-name { font-size: .75rem; font-weight: 700; color: var(--brown); margin-bottom: .2rem; }
+    .about-stat-desc { font-size: .72rem; color: var(--brown-light); line-height: 1.5; }
+
+    /* ── 3D VIEWER ───────────────────────────────────── */
+    #viewer-wrap {
+      position: relative; border-radius: 20px;
+      overflow: hidden; background: var(--cream-deep);
+      border: 1px solid var(--border);
+      height: 520px;
+    }
+    #three-canvas { width: 100%; height: 100%; display: block; }
+
+    #viewer-loading {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1rem;
+      background: var(--cream-deep);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #viewer-placeholder {
+      position: absolute; inset: 0; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 1rem; padding: 2rem; text-align: center;
+    }
+    #viewer-placeholder.visible { display: flex; }
+    .ph-icon { font-size: 3rem; }
+    .ph-title { font-size: 1.1rem; font-weight: 700; color: var(--brown); }
+    .ph-steps {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem 1.5rem;
+      text-align: left; font-size: .82rem; color: var(--brown-mid);
+      line-height: 1.9; max-width: 380px;
+    }
+    .ph-steps code {
+      background: var(--cream-deep); border-radius: 4px;
+      padding: .1em .4em; font-size: .78rem; color: var(--amber);
+    }
+
+    #viewer-controls {
+      position: absolute; bottom: 1.2rem; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center; gap: .75rem;
+      opacity: 0;
+    }
+    .viewer-hint {
+      background: rgba(44,24,16,.65); color: rgba(255,255,255,.8);
+      border-radius: 100px; padding: .35rem .9rem;
+      font-size: .72rem; letter-spacing: .03em;
+    }
+    #btn-rotate {
+      background: var(--amber); color: #fff;
+      border: none; border-radius: 100px;
+      padding: .35rem .9rem; font-size: .72rem;
+      font-weight: 700; cursor: pointer; transition: background .2s;
+      font-family: 'DM Sans', sans-serif; letter-spacing: .03em;
+    }
+    #btn-rotate:hover { background: var(--amber-dark); }
+
+    /* ── STARÁ VS NOVÁ ───────────────────────────────── */
+    #compare .compare-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+    }
+    .compare-card {
+      border-radius: 20px; padding: 2.5rem; border: 1px solid var(--border);
+    }
+    .compare-card.old { background: #f7f3ef; }
+    .compare-card.new { background: var(--cream-mid); border-color: var(--gold-pale); }
+    .compare-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; padding: .3rem .8rem;
+      border-radius: 100px; margin-bottom: 1.5rem;
+    }
+    .compare-badge.old { background: #e5e0d8; color: #7a6a5a; }
+    .compare-badge.new { background: var(--amber); color: #fff; }
+    .compare-card h3 {
+      font-size: 1.4rem; margin-bottom: 1.25rem; color: var(--brown);
+    }
+    .compare-list { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+    .compare-list li {
+      display: flex; align-items: flex-start; gap: .65rem;
+      font-size: .88rem; color: var(--brown-mid); line-height: 1.5;
+    }
+    .compare-list li::before {
+      content: attr(data-icon); flex-shrink: 0; margin-top: .05rem;
+    }
+
+    /* ── HARMONOGRAM ─────────────────────────────────── */
+    #schedule .timeline-wrap {
+      position: relative; padding-top: 2rem;
+    }
+    .timeline-track {
+      display: flex; gap: 0; overflow: hidden;
+    }
+    .timeline-bar-bg {
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 4px; background: var(--border); border-radius: 2px;
+    }
+    .timeline-bar-fill {
+      position: absolute; top: 0; left: 0;
+      height: 4px; background: var(--amber); border-radius: 2px;
+      width: 0%; transition: width .05s;
+    }
+    .timeline-months {
+      display: flex; gap: 0; margin-bottom: 2.5rem;
+      position: relative;
+    }
+    .timeline-month {
+      flex: 1; padding-top: 1.5rem;
+    }
+    .timeline-month-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--border); border: 2px solid var(--cream);
+      position: absolute; top: -3px; left: 0;
+      transition: background .3s;
+    }
+    .timeline-month-dot.done { background: var(--amber); }
+    .timeline-month-label {
+      font-size: .78rem; font-weight: 700; color: var(--brown-light);
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    .timeline-month-sub {
+      font-size: .72rem; color: var(--gold); margin-top: .2rem;
+    }
+
+    .weekends-grid {
+      display: grid; grid-template-columns: repeat(15, 1fr); gap: 6px;
+      margin-top: 2rem;
+    }
+    .weekend-cell {
+      aspect-ratio: 1; border-radius: 6px; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .65rem; font-family: monospace; color: var(--brown-light);
+      cursor: default; transition: all .2s;
+    }
+    .weekend-cell.active {
+      background: var(--amber); border-color: var(--amber);
+      color: #fff; font-weight: 900;
+    }
+    .weekend-cell.maybe {
+      background: var(--cream-mid); border-color: var(--gold-pale);
+      color: var(--amber);
+    }
+
+    .schedule-phases {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+      margin-top: 2.5rem;
+    }
+    .phase-card {
+      background: var(--cream-mid); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.25rem;
+    }
+    .phase-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: monospace; font-size: 12px; font-weight: 900;
+      color: #fff; margin-bottom: .75rem;
+    }
+    .phase-title { font-size: .88rem; font-weight: 700; color: var(--brown); margin-bottom: .4rem; }
+    .phase-desc { font-size: .75rem; color: var(--brown-light); line-height: 1.6; }
+
+    /* ── PŘEHLED ─────────────────────────────────────── */
+    #overview .cards-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    }
+    .overview-card {
+      background: var(--cream-mid); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.75rem;
+      transition: transform .25s, box-shadow .25s, background .25s;
+      cursor: default;
+    }
+    .overview-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(180,83,9,.1);
+      background: #fdefd3;
+    }
+    .overview-card-icon { font-size: 2rem; margin-bottom: .75rem; }
+    .overview-card-val {
+      font-family: monospace; font-size: 1.15rem; font-weight: 900;
+      color: var(--amber); margin-bottom: .3rem;
+    }
+    .overview-card-title { font-size: .88rem; font-weight: 700; color: var(--brown); margin-bottom: .5rem; }
+    .overview-card-desc { font-size: .8rem; color: var(--brown-light); line-height: 1.65; }
+
+    /* ── ROZPOČET ────────────────────────────────────── */
+    #budget .budget-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
+    }
+    .budget-bars { display: flex; flex-direction: column; gap: 2rem; }
+    .budget-bar-item {}
+    .budget-bar-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: .5rem;
+    }
+    .budget-bar-label { font-size: .85rem; font-weight: 700; color: var(--brown); }
+    .budget-bar-val {
+      font-family: monospace; font-size: .85rem; font-weight: 900; color: var(--amber);
+    }
+    .budget-bar-track {
+      height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+    }
+    .budget-bar-fill {
+      height: 100%; border-radius: 4px; width: 0%;
+      transition: width .05s;
+    }
+
+    .budget-summary {
+      background: #fff; border: 1px solid var(--gold-pale);
+      border-radius: 20px; padding: 2.5rem; text-align: center;
+    }
+    .budget-summary-label {
+      font-size: .72rem; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--brown-light); font-weight: 700; margin-bottom: .5rem;
+    }
+    .budget-total {
+      font-family: monospace; font-size: 4rem; font-weight: 900;
+      color: var(--amber); line-height: 1;
+    }
+    .budget-total-cur { font-size: 1.5rem; color: var(--gold); margin-bottom: 2rem; }
+    .budget-note {
+      font-size: .75rem; color: var(--brown-light); margin-top: 1.5rem;
+      font-style: italic;
+    }
+
+    .donut-legend { display: flex; flex-direction: column; gap: .6rem; margin-top: 1.5rem; }
+    .donut-item {
+      display: flex; align-items: center; gap: .6rem;
+      font-size: .8rem; color: var(--brown-mid);
+    }
+    .donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── MATERIÁLY ───────────────────────────────────── */
+    #materials .tabs-nav {
+      display: flex; border-radius: 12px 12px 0 0;
+      overflow: hidden; border: 1px solid var(--border);
+      border-bottom: none;
+    }
+    .tab-btn {
+      flex: 1; padding: .9rem 1rem; font-size: .78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      background: var(--cream); color: var(--amber);
+      border: none; border-right: 1px solid var(--border);
+      cursor: pointer; transition: background .2s, color .2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { background: var(--amber); color: #fff; }
+    .tab-btn small { display: block; font-weight: 400; opacity: .7; margin-top: .15rem; }
+
+    .tab-panel {
+      display: none; border: 1px solid var(--border);
+      border-radius: 0 0 12px 12px; overflow: hidden;
+    }
+    .tab-panel.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--cream-mid); border-bottom: 1px solid var(--border); }
+    th {
+      text-align: left; padding: .9rem 1.25rem;
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--brown-light);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    tbody tr:nth-child(even) { background: #fdf9f4; }
+    tbody tr:hover { background: var(--cream-mid); }
+    td { padding: .85rem 1.25rem; font-size: .85rem; }
+    td.mat-name { font-weight: 600; color: var(--brown); }
+    td.mat-dims { font-family: monospace; font-size: .78rem; color: var(--brown-light); }
+    td.mat-qty { font-family: monospace; font-weight: 700; color: var(--brown-mid); }
+    td.mat-total { font-family: monospace; font-weight: 900; color: var(--amber); }
+    tfoot tr { background: var(--cream-mid); border-top: 2px solid var(--gold-pale); }
+    tfoot td { padding: .9rem 1.25rem; }
+    .mat-link {
+      display: inline-block; font-size: .72rem; font-weight: 700;
+      border: 1px solid var(--gold-pale); color: var(--amber);
+      padding: .3rem .75rem; border-radius: 100px; text-decoration: none;
+      transition: background .2s, color .2s;
+    }
+    .mat-link:hover { background: var(--amber); color: #fff; }
+
+    /* ── POSTUP ──────────────────────────────────────── */
+    #process .process-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    .process-card {
+      background: var(--cream-mid); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem;
+      display: flex; gap: 1.25rem; align-items: flex-start;
+      transition: transform .25s, box-shadow .25s, background .25s;
+      cursor: default;
+    }
+    .process-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(180,83,9,.1);
+      background: #fdefd3;
+    }
+    .process-num {
+      width: 48px; height: 48px; border-radius: 12px;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-family: monospace; font-size: 13px; font-weight: 900; color: #fff;
+    }
+    .process-title { font-size: 1rem; font-weight: 700; color: var(--brown); margin-bottom: .5rem; }
+    .process-desc { font-size: .82rem; color: var(--brown-light); line-height: 1.7; }
+
+    /* ── FOOTER ──────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--cream-mid);
+      padding: 2rem;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: monospace; font-size: .72rem; color: var(--gold);
+    }
+    .footer-logo {
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .footer-logo-badge {
+      width: 22px; height: 22px; background: var(--amber); border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 900; color: #fff;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      #about .about-grid,
+      #compare .compare-grid,
+      #budget .budget-grid,
+      #process .process-grid { grid-template-columns: 1fr; }
+      #overview .cards-grid { grid-template-columns: 1fr 1fr; }
+      .schedule-phases { grid-template-columns: 1fr 1fr; }
+      .weekends-grid { grid-template-columns: repeat(8, 1fr); }
+      .tabs-nav { flex-wrap: wrap; }
+      .tab-btn { flex: 1 0 48%; }
+    }
+    @media (max-width: 480px) {
+      #overview .cards-grid { grid-template-columns: 1fr; }
+      .schedule-phases { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ──────────────────────────────────────── -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#hero">
+      <div class="nav-logo-badge">ORV</div>
+      <span class="nav-logo-text">Projektová dokumentace</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">O projektu</a></li>
+      <li><a href="#model3d">3D model</a></li>
+      <li><a href="#schedule">Harmonogram</a></li>
+      <li><a href="#budget">Rozpočet</a></li>
+      <li><a href="#materials">Materiály</a></li>
+    </ul>
+  </div>
+  <div id="nav-progress"></div>
+</nav>
+
+<!-- ── HERO ────────────────────────────────────────── -->
+<div id="hero">
+  <div class="hero-label">Skautské středisko · 2026</div>
+  <h1 class="hero-title">
+    <span class="word" id="hw1"><span class="char">N</span><span class="char">o</span><span class="char">v</span><span class="char">á</span></span>&nbsp;
+    <span class="word" id="hw2"><span class="char">s</span><span class="char">k</span><span class="char">l</span><span class="char">a</span><span class="char">d</span><span class="char">o</span><span class="char">v</span><span class="char">a</span><span class="char">c</span><span class="char">í</span></span><br>
+    <span class="word" id="hw3"><span class="char">b</span><span class="char">u</span><span class="char">d</span><span class="char">o</span><span class="char">v</span><span class="char">a</span></span>
+  </h1>
+  <p class="hero-sub">
+    Nová dřevěná skladovací budova 6&nbsp;×&nbsp;3&nbsp;m pro tábořiště — pevná, krásná, postavená vlastníma rukama.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-val">6 × 3 m</span>
+      <span class="hero-stat-lbl">Půdorys</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">~<span id="counter-budget">0</span> tis. Kč</span>
+      <span class="hero-stat-lbl">Rozpočet</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">do 8/2026</span>
+      <span class="hero-stat-lbl">Termín</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val"><span id="counter-wknds">0</span> víkendů</span>
+      <span class="hero-stat-lbl">Plánovaná stavba</span>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-arrow">↓</div>
+    Scroll
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── O PROJEKTU ──────────────────────────────────── -->
+<section class="section" id="about">
+  <div class="section-header reveal">
+    <span class="section-num">01 —</span>
+    <h2 class="section-title">O projektu</h2>
+  </div>
+  <div class="about-grid">
+    <div class="reveal-left">
+      <p class="about-quote">"Tábořiště si zaslouží důstojný sklad — místo, kde vybavení přežije zimu i příštích dvacet let."</p>
+      <p class="about-text">Budova bude sloužit jako hlavní sklad tábora — bezpečné a suché místo pro podlážky, plachty, stany a veškerý táborový materiál. Hotovo do konce <strong>srpna 2026</strong>, staví partička 4&nbsp;lidí.</p>
+    </div>
+    <div class="about-card reveal-right">
+      <div class="about-stat">
+        <div class="about-stat-icon">🏗</div>
+        <div class="about-stat-val">6 × 3 m</div>
+        <div class="about-stat-name">Půdorys</div>
+        <div class="about-stat-desc">Rámová dřevěná konstrukce na 12 stavitelných kovových patkách 80×80 mm.</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-icon">🪵</div>
+        <div class="about-stat-val">Smrk + KVH</div>
+        <div class="about-stat-name">Materiál</div>
+        <div class="about-stat-desc">KVH profily, smrkové palubky, modřínová podlaha. Bochemit + lazura LUXOL.</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-icon">🏠</div>
+        <div class="about-stat-val">Pultová střecha</div>
+        <div class="about-stat-name">Střecha</div>
+        <div class="about-stat-desc">OSB záklop, asfaltový pás Charbit 5,2 mm, závětrné lišty, okapnice.</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-icon">🪟</div>
+        <div class="about-stat-val">5 oken</div>
+        <div class="about-stat-name">Okna & dveře</div>
+        <div class="about-stat-desc">5× polykarbonát 845×645 mm. Vstupní dveře 200×200 cm pro velké vybavení.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── 3D MODEL ─────────────────────────────────────── -->
+<section class="section" id="model3d">
+  <div class="section-header reveal">
+    <span class="section-num">02 —</span>
+    <h2 class="section-title">3D vizualizace</h2>
+    <p class="section-sub">Ovládej model myší — táhni pro rotaci, scroll pro zoom.</p>
+  </div>
+  <div id="viewer-wrap" class="reveal">
+    <canvas id="three-canvas"></canvas>
+    <div id="viewer-loading">
+      <div class="spinner"></div>
+      <span style="font-size:.82rem;color:var(--brown-light)">Načítám 3D model…</span>
+    </div>
+    <div id="viewer-placeholder">
+      <div class="ph-icon">📦</div>
+      <div class="ph-title">3D model zatím není k dispozici</div>
+      <div class="ph-steps">
+        <strong>Export z Blenderu:</strong><br>
+        1. Otevři <code>ORV - V.4.blend</code><br>
+        2. <code>File → Export → glTF 2.0 (.glb)</code><br>
+        3. Ulož jako <code>ORV - V.4.glb</code> do stejné složky jako tento HTML soubor<br>
+        4. Obnov stránku — model se automaticky načte.
+      </div>
+    </div>
+    <div id="viewer-controls">
+      <span class="viewer-hint">🖱 Táhni · Scroll zoom</span>
+      <button id="btn-rotate">⏸ Zastavit rotaci</button>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── STARÁ VS NOVÁ ────────────────────────────────── -->
+<section class="section" id="compare">
+  <div class="section-header reveal">
+    <span class="section-num">03 —</span>
+    <h2 class="section-title">Stará vs. Nová budova</h2>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card old reveal-left">
+      <div class="compare-badge old">⚠ Stávající stav</div>
+      <h3>Nevyhovující skladování</h3>
+      <ul class="compare-list">
+        <li data-icon="❌">Materiál uložen v provizorních podmínkách bez ochrany před povětrností</li>
+        <li data-icon="❌">Vlhkost ničí stany, plachty a podlážky během zimy</li>
+        <li data-icon="❌">Žádná bezpečnost — přístup nechráněn</li>
+        <li data-icon="❌">Chaotická organizace — vybavení nelze snadno najít</li>
+        <li data-icon="❌">Každoroční škody na táborovém vybavení v řádu tisíců korun</li>
+      </ul>
+    </div>
+    <div class="compare-card new reveal-right">
+      <div class="compare-badge new">✓ Nová budova 2026</div>
+      <h3>Pevný dřevěný sklad ORV</h3>
+      <ul class="compare-list">
+        <li data-icon="✅">Uzavřená dřevěná konstrukce 6×3 m, odolná vůči počasí</li>
+        <li data-icon="✅">Asfaltová střecha Charbit 5,2 mm — sucho po desítky let</li>
+        <li data-icon="✅">Vstupní dveře 200×200 cm se zámkem</li>
+        <li data-icon="✅">5 polykarbonátových oken — přirozené světlo a větrání</li>
+        <li data-icon="✅">Modřínová podlaha odolná vlhkosti, ošetřena Bochemitem</li>
+        <li data-icon="✅">Životnost 20+ let při minimální údržbě</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── HARMONOGRAM ──────────────────────────────────── -->
+<section class="section" id="schedule">
+  <div class="section-header reveal">
+    <span class="section-num">04 —</span>
+    <h2 class="section-title">Harmonogram</h2>
+    <p class="section-sub">Start v dubnu 2026. Z 15 dostupných víkendů plánujeme využít 9–10.</p>
+  </div>
+
+  <div class="reveal">
+    <div style="display:flex;gap:2rem;margin-bottom:2rem;flex-wrap:wrap;">
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem 1.5rem;text-align:center;">
+        <div style="font-family:monospace;font-size:1.5rem;font-weight:900;color:var(--amber)">Duben</div>
+        <div style="font-size:.78rem;color:var(--brown-light)">Start stavby</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem 1.5rem;text-align:center;">
+        <div style="font-family:monospace;font-size:1.5rem;font-weight:900;color:var(--amber)">9–10</div>
+        <div style="font-size:.78rem;color:var(--brown-light)">Stavebních víkendů</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem 1.5rem;text-align:center;">
+        <div style="font-family:monospace;font-size:1.5rem;font-weight:900;color:var(--amber)">4</div>
+        <div style="font-size:.78rem;color:var(--brown-light)">Lidé na stavbě</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem 1.5rem;text-align:center;">
+        <div style="font-family:monospace;font-size:1.5rem;font-weight:900;color:var(--amber)">8/2026</div>
+        <div style="font-size:.78rem;color:var(--brown-light)">Dokončení</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--brown-light);margin-bottom:.5rem;">
+        <span style="font-weight:700">Víkendy stavby</span>
+        <span style="font-family:monospace">9–10 / 15</span>
+      </div>
+      <div class="weekends-grid" id="weekends-grid">
+        <!-- generováno JS -->
+      </div>
+      <div style="display:flex;gap:1rem;margin-top:.75rem;font-size:.72rem;color:var(--brown-light)">
+        <span style="display:flex;align-items:center;gap:.4rem;"><span style="width:10px;height:10px;background:var(--amber);border-radius:3px;display:inline-block"></span>Stavební víkend</span>
+        <span style="display:flex;align-items:center;gap:.4rem;"><span style="width:10px;height:10px;background:var(--cream-mid);border:1px solid var(--gold-pale);border-radius:3px;display:inline-block"></span>Případně</span>
+        <span style="display:flex;align-items:center;gap:.4rem;"><span style="width:10px;height:10px;background:transparent;border:2px solid var(--border);border-radius:3px;display:inline-block"></span>Volný víkend</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-phases" style="margin-top:2.5rem">
+    <div class="phase-card reveal">
+      <div class="phase-num" style="background:#b45309">01</div>
+      <div class="phase-title">Základy & Podlaha</div>
+      <div class="phase-desc">Příprava terénu, 12 kovových patek do betonu. KVH vazníky 60×140. Modřínová podlaha 28×140 mm.</div>
+    </div>
+    <div class="phase-card reveal">
+      <div class="phase-num" style="background:#92400e">02</div>
+      <div class="phase-title">Nosná konstrukce</div>
+      <div class="phase-desc">44× sloupků 50×100 mm (3m) + 22× svislých (2,5m). Překlady nad otvory. Kontrola svislosti.</div>
+    </div>
+    <div class="phase-card reveal">
+      <div class="phase-num" style="background:#78350f">03</div>
+      <div class="phase-title">Plášť, okna & dveře</div>
+      <div class="phase-desc">Smrkové palubky 19×146 mm (126 ks). 5× polykarbonátové okno. Dveřní křídlo 200×200 cm.</div>
+    </div>
+    <div class="phase-card reveal">
+      <div class="phase-num" style="background:#166534">04</div>
+      <div class="phase-title">Střecha & povrch</div>
+      <div class="phase-desc">13× krokví KVH 60×140. OSB záklop 22mm. Asfaltový pás Charbit 5,2mm. Bochemit + LUXOL.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── PŘEHLED PROJEKTU ─────────────────────────────── -->
+<section class="section" id="overview">
+  <div class="section-header reveal">
+    <span class="section-num">05 —</span>
+    <h2 class="section-title">Přehled projektu</h2>
+  </div>
+  <div class="cards-grid">
+    <div class="overview-card reveal"><div class="overview-card-icon">🏗</div><div class="overview-card-val">6 × 3 m</div><div class="overview-card-title">Půdorys</div><div class="overview-card-desc">Rámová dřevěná konstrukce na 12 stavitelných kovových patkách 80×80 mm.</div></div>
+    <div class="overview-card reveal"><div class="overview-card-icon">🪵</div><div class="overview-card-val">Smrk + KVH</div><div class="overview-card-title">Materiál</div><div class="overview-card-desc">KVH profily, smrkové palubky, modřínová podlaha. Bochemit + lazura LUXOL.</div></div>
+    <div class="overview-card reveal"><div class="overview-card-icon">🏠</div><div class="overview-card-val">Pultová střecha</div><div class="overview-card-title">Střecha</div><div class="overview-card-desc">OSB záklop, asfaltový pás Charbit 5,2 mm, závětrné lišty, okapnice.</div></div>
+    <div class="overview-card reveal"><div class="overview-card-icon">🪟</div><div class="overview-card-val">5 oken</div><div class="overview-card-title">Okna</div><div class="overview-card-desc">Pět polykarbonátových oken 845×645 mm — světlo a průvětrání skladu.</div></div>
+    <div class="overview-card reveal"><div class="overview-card-icon">🚪</div><div class="overview-card-val">200 × 200 cm</div><div class="overview-card-title">Vstupní dveře</div><div class="overview-card-desc">Mohutné dveře 200×200 cm — snadný vjezd i pro větší vybavení.</div></div>
+    <div class="overview-card reveal"><div class="overview-card-icon">📅</div><div class="overview-card-val">Do konce srpna</div><div class="overview-card-title">Termín</div><div class="overview-card-desc">Stavba probíhá 9–10 víkendů od dubna. Hotovo do konce srpna 2026.</div></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── ROZPOČET ─────────────────────────────────────── -->
+<section class="section" id="budget">
+  <div class="section-header reveal">
+    <span class="section-num">06 —</span>
+    <h2 class="section-title">Rozpočet</h2>
+  </div>
+  <div class="budget-grid">
+    <div class="budget-bars reveal-left">
+      <div class="budget-bar-item">
+        <div class="budget-bar-header">
+          <span class="budget-bar-label">🪵 Podlaha</span>
+          <span class="budget-bar-val">~33 000 Kč</span>
+        </div>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="background:#b45309" data-pct="28"></div></div>
+      </div>
+      <div class="budget-bar-item">
+        <div class="budget-bar-header">
+          <span class="budget-bar-label">🧱 Stěny</span>
+          <span class="budget-bar-val">~47 000 Kč</span>
+        </div>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="background:#92400e" data-pct="39"></div></div>
+      </div>
+      <div class="budget-bar-item">
+        <div class="budget-bar-header">
+          <span class="budget-bar-label">🏠 Střecha</span>
+          <span class="budget-bar-val">~34 000 Kč</span>
+        </div>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="background:#166534" data-pct="28"></div></div>
+      </div>
+      <div class="budget-bar-item">
+        <div class="budget-bar-header">
+          <span class="budget-bar-label">🎨 Povrchová úprava</span>
+          <span class="budget-bar-val">~6 000 Kč</span>
+        </div>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="background:#7c3aed" data-pct="5"></div></div>
+      </div>
+      <p style="font-size:.72rem;color:var(--gold);font-family:monospace;margin-top:.5rem">* Ceny zaokrouhleny. Rezerva ±10–15 tis. Kč.</p>
+    </div>
+    <div class="budget-summary reveal-right">
+      <div class="budget-summary-label">Celkový odhad nákladů</div>
+      <div class="budget-total">~<span id="counter-total">0</span></div>
+      <div class="budget-total-cur">Kč</div>
+      <svg viewBox="0 0 120 120" style="width:110px;height:110px;display:block;margin:0 auto;transform:rotate(-90deg)">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#e7dcc8" stroke-width="12"/>
+        <circle id="donut-podlaha" cx="60" cy="60" r="50" fill="none" stroke="#b45309" stroke-width="12" stroke-dasharray="0 314" stroke-linecap="round"/>
+        <circle id="donut-steny"   cx="60" cy="60" r="50" fill="none" stroke="#92400e" stroke-width="12" stroke-dasharray="0 314" stroke-linecap="round" stroke-dashoffset="0"/>
+        <circle id="donut-strecha" cx="60" cy="60" r="50" fill="none" stroke="#166534" stroke-width="12" stroke-dasharray="0 314" stroke-linecap="round" stroke-dashoffset="0"/>
+        <circle id="donut-povrch"  cx="60" cy="60" r="50" fill="none" stroke="#7c3aed" stroke-width="12" stroke-dasharray="0 314" stroke-linecap="round" stroke-dashoffset="0"/>
+      </svg>
+      <div class="donut-legend">
+        <div class="donut-item"><span class="donut-dot" style="background:#b45309"></span>Podlaha — 28 %</div>
+        <div class="donut-item"><span class="donut-dot" style="background:#92400e"></span>Stěny — 39 %</div>
+        <div class="donut-item"><span class="donut-dot" style="background:#166534"></span>Střecha — 28 %</div>
+        <div class="donut-item"><span class="donut-dot" style="background:#7c3aed"></span>Povrch — 5 %</div>
+      </div>
+      <p class="budget-note">26 položek · 4 kategorie · Do 8/2026</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── MATERIÁLOVÝ SEZNAM ───────────────────────────── -->
+<section class="section" id="materials">
+  <div class="section-header reveal">
+    <span class="section-num">07 —</span>
+    <h2 class="section-title">Materiálový seznam</h2>
+    <p class="section-sub">Každá položka má přímý odkaz na e-shop.</p>
+  </div>
+  <div class="reveal">
+    <div class="tabs-nav" id="tabs-nav">
+      <button class="tab-btn active" data-tab="podlaha">🪵 Podlaha<small>~33 tis.</small></button>
+      <button class="tab-btn" data-tab="steny">🧱 Stěny<small>~47 tis.</small></button>
+      <button class="tab-btn" data-tab="strecha">🏠 Střecha<small>~34 tis.</small></button>
+      <button class="tab-btn" data-tab="povrch">🎨 Povrch<small>~6 tis.</small></button>
+    </div>
+
+    <div class="tab-panel active" id="tab-podlaha">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Beton B20</td><td class="mat-dims">25 kg/bal.</td><td class="mat-qty">34×</td><td class="mat-total">~3 000 Kč</td><td><a class="mat-link" href="https://www.hornbach.cz/p/beton-precit-b20-mpa-baleni-25-kg/10000529" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">Prkno – forma na beton</td><td class="mat-dims">2000×95×24 mm</td><td class="mat-qty">10×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.hornbach.cz/p/prkno-hoblovane-24-x-95-x-2000-mm-smrk/5241566/" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">Kovové patky stavitelné</td><td class="mat-dims">80×80 mm</td><td class="mat-qty">12×</td><td class="mat-total">~2 000 Kč</td><td><a class="mat-link" href="https://kotarbau.cz/product-cze-1316-patka-sloupku-stavitelna-80x80x500.html" target="_blank" rel="noreferrer">Kotarbau ↗</a></td></tr>
+          <tr><td class="mat-name">Trámy obvodové 6 m</td><td class="mat-dims">6000×100×140 mm</td><td class="mat-qty">2×</td><td class="mat-total">~2 000 Kč</td><td><a class="mat-link" href="https://e-rezivo.cz/dreveny-hranol-100-x-140-mm-delka-6-m/" target="_blank" rel="noreferrer">e-rezivo ↗</a></td></tr>
+          <tr><td class="mat-name">Trámy obvodové 3 m</td><td class="mat-dims">3000×100×140 mm</td><td class="mat-qty">6×</td><td class="mat-total">~3 000 Kč</td><td><a class="mat-link" href="https://www.filko-pila.cz/produkt/hranol/" target="_blank" rel="noreferrer">Filko-pila ↗</a></td></tr>
+          <tr><td class="mat-name">Vazníky KVH 60×140</td><td class="mat-dims">5500×140×60 mm</td><td class="mat-qty">6×</td><td class="mat-total">~7 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/kvh-nsi-smrk-60x140mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Prkno modřín – terasa</td><td class="mat-dims">3000×140×28 mm</td><td class="mat-qty">11×</td><td class="mat-total">~15 000 Kč</td><td><a class="mat-link" href="https://www.dek.cz/produkty/detail/3012010419-au-mex-terasa-modrin-slezsky-28x140x3000mm-hl-hl-4ks-bal" target="_blank" rel="noreferrer">DEK ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" style="font-size:.78rem;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:.1em">Mezisoučet</td><td style="font-family:monospace;font-weight:900;font-size:1.05rem;color:var(--amber-dark)">~33 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="tab-panel" id="tab-steny">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Sloupy 3 m (50×100)</td><td class="mat-dims">3000×100×50 mm</td><td class="mat-qty">44×</td><td class="mat-total">~10 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/konstrukcni-lat-sm-50x100mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Sloupy 2,5 m svislé</td><td class="mat-dims">3000×100×50 mm</td><td class="mat-qty">22×</td><td class="mat-total">~5 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/konstrukcni-lat-sm-50x100mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Palubky obkl. 3 m</td><td class="mat-dims">3000×19×146 mm</td><td class="mat-qty">44×</td><td class="mat-total">~8 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/obkladova-palubka-sm-19x146-mm-f-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Palubky obkl. 6 m</td><td class="mat-dims">3000×19×146 mm</td><td class="mat-qty">82×</td><td class="mat-total">~15 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/obkladova-palubka-sm-19x146-mm-f-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Okna – prkýnka</td><td class="mat-dims">20×20×2000 mm</td><td class="mat-qty">10×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.pro-doma.cz/hranolek-20-20-2000-mm" target="_blank" rel="noreferrer">Pro-doma ↗</a></td></tr>
+          <tr><td class="mat-name">Palubky – dveře</td><td class="mat-dims">4000×19×146 mm</td><td class="mat-qty">7×</td><td class="mat-total">~2 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/obkladova-palubka-sm-19x146mm-profil-klasik-c-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Prkna – dveře</td><td class="mat-dims">4000×40×121 mm</td><td class="mat-qty">3×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/hoblovane-prkno-sm-40x121mm-a-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Polykarbonát – okna</td><td class="mat-dims">845×645×4 mm</td><td class="mat-qty">5×</td><td class="mat-total">~5 000 Kč</td><td><a class="mat-link" href="https://plasticexpress.cz/configurator/46-bezbarv-pln-polykarbon-t/62-5-mm" target="_blank" rel="noreferrer">PlasticExpress ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" style="font-size:.78rem;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:.1em">Mezisoučet</td><td style="font-family:monospace;font-weight:900;font-size:1.05rem;color:var(--amber-dark)">~47 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="tab-panel" id="tab-strecha">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Závětrné pásy</td><td class="mat-dims">40×2×10 000 mm</td><td class="mat-qty">2×</td><td class="mat-total">~2 000 Kč</td><td><a class="mat-link" href="https://eshop.drevocentrum-as.cz/z111737-smrkove-prkno-stavebni-24-x-100-mm-4-m" target="_blank" rel="noreferrer">Drevocentrum ↗</a></td></tr>
+          <tr><td class="mat-name">Čelní vaznice KVH</td><td class="mat-dims">6500×140×40 mm</td><td class="mat-qty">2×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.woodie.cz/kvh-hranol-40-140-mm-nsi" target="_blank" rel="noreferrer">Woodie ↗</a></td></tr>
+          <tr><td class="mat-name">Krokve KVH 60×140</td><td class="mat-dims">4000×60×140 mm</td><td class="mat-qty">13×</td><td class="mat-total">~10 000 Kč</td><td><a class="mat-link" href="https://www.palubky-eshop.cz/kvh-nsi-smrk-60x140mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">OSB desky tl. 22 mm</td><td class="mat-dims">22×1250×2500 mm</td><td class="mat-qty">20×</td><td class="mat-total">~11 000 Kč</td><td><a class="mat-link" href="https://www.dek.cz/produkty/detail/3010488220-osb-krono-3-22x2500x625-n-4pd-32ks-p" target="_blank" rel="noreferrer">DEK ↗</a></td></tr>
+          <tr><td class="mat-name">Asfalt. pás Charbit</td><td class="mat-dims">tl. 5,2 mm, 5 m²/rol.</td><td class="mat-qty">6×</td><td class="mat-total">~6 000 Kč</td><td><a class="mat-link" href="https://www.pro-doma.cz/pas-asfaltovy-charbit-elast-pv-s52-hq-final-seda-natur-5-m2-role-tloustka-5-2-mm" target="_blank" rel="noreferrer">Pro-doma ↗</a></td></tr>
+          <tr><td class="mat-name">Závětrné lišty</td><td class="mat-dims">14 m / ks</td><td class="mat-qty">8×</td><td class="mat-total">~3 000 Kč</td><td><a class="mat-link" href="https://www.plechujeme.cz/zavetrna-lista-na-pultovou-strechu-rs-250-p2406/" target="_blank" rel="noreferrer">Plechujeme ↗</a></td></tr>
+          <tr><td class="mat-name">Okapnice</td><td class="mat-dims">6 m / ks</td><td class="mat-qty">3×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.plechujeme.cz/okapnice-rs-250-p2403/" target="_blank" rel="noreferrer">Plechujeme ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" style="font-size:.78rem;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:.1em">Mezisoučet</td><td style="font-family:monospace;font-weight:900;font-size:1.05rem;color:var(--amber-dark)">~34 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="tab-panel" id="tab-povrch">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Bochemit QB</td><td class="mat-dims">5 kg (350 m²)</td><td class="mat-qty">1×</td><td class="mat-total">~2 000 Kč</td><td><a class="mat-link" href="https://www.hornbach.cz/p/ochrana-dreva-bochemit-original-ciry-biocid-5-kg/10537407/" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">Asfalt. penetrační lak</td><td class="mat-dims">9 kg</td><td class="mat-qty">1×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.hornbach.cz/p/asfaltovy-penetracni-lak-den-braven-denbit-br-alp-9-kg/8476040/" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">LUXOL Lazura čirá 10 l</td><td class="mat-dims">10 l</td><td class="mat-qty">1×</td><td class="mat-total">~2 000 Kč</td><td><a class="mat-link" href="https://www.obi.cz/lazury-na-drevo/luxol-original-tenkovrstva-lazura-bezbarva-10-l/p/3714557" target="_blank" rel="noreferrer">OBI ↗</a></td></tr>
+          <tr><td class="mat-name">LUXOL Lazura čirá 2,5 l</td><td class="mat-dims">2,5 l</td><td class="mat-qty">1×</td><td class="mat-total">~1 000 Kč</td><td><a class="mat-link" href="https://www.obi.cz/lazury-na-drevo/luxol-original-tenkovrstva-lazura-bezbarva-2-5-l/p/3714540" target="_blank" rel="noreferrer">OBI ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" style="font-size:.78rem;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:.1em">Mezisoučet</td><td style="font-family:monospace;font-weight:900;font-size:1.05rem;color:var(--amber-dark)">~6 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── POSTUP VÝSTAVBY ──────────────────────────────── -->
+<section class="section" id="process">
+  <div class="section-header reveal">
+    <span class="section-num">08 —</span>
+    <h2 class="section-title">Postup výstavby</h2>
+  </div>
+  <div class="process-grid">
+    <div class="process-card reveal">
+      <div class="process-num" style="background:#b45309">01</div>
+      <div>
+        <div class="process-title">Základy & Podlaha</div>
+        <div class="process-desc">Příprava terénu, 12 kovových patek do betonu. KVH vazníky 60×140. Modřínová podlaha 28×140 mm.</div>
+      </div>
+    </div>
+    <div class="process-card reveal">
+      <div class="process-num" style="background:#92400e">02</div>
+      <div>
+        <div class="process-title">Nosná konstrukce</div>
+        <div class="process-desc">44× sloupků 50×100 mm (3m) + 22× svislých (2,5m). Překlady nad otvory. Kontrola svislosti.</div>
+      </div>
+    </div>
+    <div class="process-card reveal">
+      <div class="process-num" style="background:#78350f">03</div>
+      <div>
+        <div class="process-title">Plášť, okna & dveře</div>
+        <div class="process-desc">Smrkové palubky 19×146 mm (126 ks). 5× polykarbonátové okno. Dveřní křídlo 200×200 cm.</div>
+      </div>
+    </div>
+    <div class="process-card reveal">
+      <div class="process-num" style="background:#166534">04</div>
+      <div>
+        <div class="process-title">Střecha & povrchová úprava</div>
+        <div class="process-desc">13× krokví KVH 60×140. OSB záklop 22mm. Asfaltový pás Charbit 5,2mm. Bochemit + LUXOL lazura.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <div class="footer-logo-badge">ORV</div>
+      ORV Projektová dokumentace · Verze 4 · Skautské středisko · 2026
+    </div>
+    <div>~120 tis. Kč · 26 položek · 4 fáze · Do 8/2026</div>
+  </div>
+</footer>
+
+
+<!-- ── THREE.JS 3D VIEWER ────────────────────────────── -->
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  const canvas   = document.getElementById('three-canvas');
+  const loading  = document.getElementById('viewer-loading');
+  const placeholder = document.getElementById('viewer-placeholder');
+  const controls_ui = document.getElementById('viewer-controls');
+  const btnRotate = document.getElementById('btn-rotate');
+  const wrap     = document.getElementById('viewer-wrap');
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const scene  = new THREE.Scene();
+  scene.background = new THREE.Color(0xf5e6cc);
+
+  const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.01, 1000);
+  camera.position.set(6, 4, 8);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xfff4e0, 1.2);
+  scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xfff0cc, 2.5);
+  sun.position.set(5, 10, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xc4a880, 0.6);
+  fill.position.set(-5, 3, -5);
+  scene.add(fill);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+  controls.autoRotate    = true;
+  controls.autoRotateSpeed = 1.2;
+  controls.minDistance   = 2;
+  controls.maxDistance   = 30;
+
+  // Stop auto-rotate on user interaction
+  controls.addEventListener('start', () => {
+    controls.autoRotate = false;
+    btnRotate.textContent = '▶ Spustit rotaci';
+  });
+
+  // Rotate button
+  btnRotate.addEventListener('click', () => {
+    controls.autoRotate = !controls.autoRotate;
+    btnRotate.textContent = controls.autoRotate ? '⏸ Zastavit rotaci' : '▶ Spustit rotaci';
+  });
+
+  // Resize
+  window.addEventListener('resize', () => {
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+
+  // Animate loop
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Load GLB
+  const loader = new GLTFLoader();
+  const glbPath = 'ORV - V.4.glb';
+
+  // Check if file exists first
+  fetch(glbPath, { method: 'HEAD' })
+    .then(r => {
+      if (!r.ok) throw new Error('not found');
+      return loader.loadAsync(glbPath, xhr => {
+        // optional progress
+      });
+    })
+    .then(gltf => {
+      scene.add(gltf.scene);
+      // Center model
+      const box = new THREE.Box3().setFromObject(gltf.scene);
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      gltf.scene.position.sub(center);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      camera.position.set(maxDim * 1.5, maxDim, maxDim * 1.5);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      // Hide loading, show controls
+      gsap.to(loading, { opacity: 0, duration: .4, onComplete: () => loading.style.display = 'none' });
+      gsap.fromTo(controls_ui, { opacity: 0 }, { opacity: 1, duration: .6, delay: .2 });
+    })
+    .catch(() => {
+      // Show placeholder
+      loading.style.display = 'none';
+      placeholder.classList.add('visible');
+    });
+</script>
+
+
+<!-- ── GSAP ANIMATIONS ──────────────────────────────── -->
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ── Scroll progress bar ──────────────────────────────
+  gsap.to('#nav-progress', {
+    width: '100%',
+    ease: 'none',
+    scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: true }
+  });
+
+  // ── Navbar border on scroll ──────────────────────────
+  ScrollTrigger.create({
+    start: 50,
+    onEnter: () => document.getElementById('navbar').classList.add('scrolled'),
+    onLeaveBack: () => document.getElementById('navbar').classList.remove('scrolled'),
+  });
+
+  // ── Hero animations ──────────────────────────────────
+  const chars = document.querySelectorAll('.hero-title .char');
+  gsap.from(chars, {
+    y: 80, opacity: 0, duration: .9, ease: 'power4.out',
+    stagger: .03, delay: .15
+  });
+  gsap.to('.hero-label', { opacity: 1, y: 0, duration: .8, delay: .1 });
+  gsap.to('.hero-sub',   { opacity: 1, duration: .8, delay: .7 });
+  gsap.to('.hero-stats', { opacity: 1, duration: .8, delay: .9 });
+  gsap.to('.hero-scroll',{ opacity: 1, duration: .8, delay: 1.2 });
+  gsap.to('.hero-scroll-arrow', { y: 4, duration: .7, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 1.5 });
+
+  // ── Budget counter ────────────────────────────────────
+  const counterBudget = { val: 0 };
+  gsap.to(counterBudget, {
+    val: 120, duration: 1.5, ease: 'power2.out', delay: 1,
+    onUpdate: () => document.getElementById('counter-budget').textContent = Math.round(counterBudget.val)
+  });
+  const counterWknds = { val: 0 };
+  gsap.to(counterWknds, {
+    val: 10, duration: 1, ease: 'power2.out', delay: 1.1,
+    onUpdate: () => document.getElementById('counter-wknds').textContent = Math.round(counterWknds.val)
+  });
+
+  // ── Generic reveal helper ────────────────────────────
+  function revealEl(selector, extra) {
+    gsap.utils.toArray(selector).forEach((el, i) => {
+      gsap.to(el, {
+        opacity: 1, y: 0, x: 0, duration: .8, ease: 'power3.out',
+        delay: (extra && extra.stagger) ? i * extra.stagger : 0,
+        scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+      });
+    });
+  }
+
+  revealEl('.reveal');
+  revealEl('.reveal-left');
+  revealEl('.reveal-right');
+  revealEl('.overview-card', { stagger: .07 });
+  revealEl('.phase-card', { stagger: .08 });
+  revealEl('.process-card', { stagger: .1 });
+
+  // ── Budget bars ───────────────────────────────────────
+  document.querySelectorAll('.budget-bar-fill').forEach(bar => {
+    const pct = bar.dataset.pct;
+    gsap.to(bar, {
+      width: pct + '%', duration: 1.2, ease: 'power3.out',
+      scrollTrigger: { trigger: bar, start: 'top 85%', once: true }
+    });
+  });
+
+  // ── Budget counter (section) ──────────────────────────
+  const totalObj = { val: 0 };
+  ScrollTrigger.create({
+    trigger: '#budget',
+    start: 'top 70%',
+    once: true,
+    onEnter: () => {
+      gsap.to(totalObj, {
+        val: 120000, duration: 1.6, ease: 'power2.out',
+        onUpdate: () => {
+          document.getElementById('counter-total').textContent =
+            Math.round(totalObj.val).toLocaleString('cs-CZ');
+        }
+      });
+      // Donut chart animation
+      const circ = 2 * Math.PI * 50; // r=50
+      const segs = [
+        { id: 'donut-podlaha', pct: 28, off: 0 },
+        { id: 'donut-steny',   pct: 39, off: 28 },
+        { id: 'donut-strecha', pct: 28, off: 67 },
+        { id: 'donut-povrch',  pct: 5,  off: 95 },
+      ];
+      segs.forEach((s, i) => {
+        const el = document.getElementById(s.id);
+        const dashLen = (s.pct / 100) * circ;
+        const dashOff = -(s.off / 100) * circ;
+        gsap.fromTo(el,
+          { attr: { 'stroke-dasharray': `0 ${circ}`, 'stroke-dashoffset': -dashOff } },
+          { attr: { 'stroke-dasharray': `${dashLen} ${circ}`, 'stroke-dashoffset': dashOff },
+            duration: 1, ease: 'power2.out', delay: i * .15 }
+        );
+      });
+    }
+  });
+
+  // ── Tabs ─────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+    });
+  });
+
+  // ── Weekends grid ─────────────────────────────────────
+  const grid = document.getElementById('weekends-grid');
+  const weekendData = [
+    'active','active','active','maybe','active',
+    'active','active','active','active','active',
+    'maybe','free','free','free','free'
+  ];
+  weekendData.forEach((type, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'weekend-cell' + (type === 'active' ? ' active' : type === 'maybe' ? ' maybe' : '');
+    cell.textContent = String(i + 1).padStart(2, '0');
+    grid.appendChild(cell);
+  });
+
+  // Animate weekends on scroll
+  ScrollTrigger.create({
+    trigger: '#weekends-grid',
+    start: 'top 80%',
+    once: true,
+    onEnter: () => {
+      gsap.from('#weekends-grid .weekend-cell', {
+        scale: 0, opacity: 0, duration: .4, ease: 'back.out(1.5)',
+        stagger: .04
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

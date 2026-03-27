@@ -1,0 +1,70 @@
+<!-- ══════════════════════════════════════════════════════
+     comparison.html — Stará vs. Nová budova
+     ══════════════════════════════════════════════════════ -->
+<style>
+  #compare .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+  }
+  .compare-card {
+    border-radius: 20px; padding: 2.5rem; border: 1px solid var(--border);
+  }
+  .compare-card.old { background: #f7f3ef; }
+  .compare-card.new { background: var(--cream-mid); border-color: var(--gold-pale); }
+  .compare-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; padding: .3rem .8rem;
+    border-radius: 100px; margin-bottom: 1.5rem;
+  }
+  .compare-badge.old { background: #e5e0d8; color: #7a6a5a; }
+  .compare-badge.new { background: var(--amber); color: #fff; }
+  .compare-card h3 {
+    font-size: 1.4rem; margin-bottom: 1.25rem; color: var(--brown);
+  }
+  .compare-list { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+  .compare-list li {
+    display: flex; align-items: flex-start; gap: .65rem;
+    font-size: .88rem; color: var(--brown-mid); line-height: 1.5;
+  }
+  .compare-list li::before {
+    content: attr(data-icon); flex-shrink: 0; margin-top: .05rem;
+  }
+</style>
+
+<section class="section" id="compare">
+  <div class="section-header reveal">
+    <span class="section-num">02 —</span>
+    <h2 class="section-title">Stará vs. Nová budova</h2>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card old reveal-left">
+      <div class="compare-badge old">⚠ Stávající stav</div>
+      <h3>Nevyhovující skladování</h3>
+      <ul class="compare-list">
+        <li data-icon="❌">Cesta k budově vede do kopce a po schodech — manipulace s těžkým vybavením je náročná</li>
+        <li data-icon="❌">Malý prostor před vchodem ztěžuje ukládání podsadových stanů a jejich příslušenství</li>
+        <li data-icon="❌">Malé dveře — při manipulaci s větším vybavením nevhodné</li>
+        <li data-icon="❌">Dřevěná konstrukce začíná trouchnivět, celkový stav budovy je špatný</li>
+        <li data-icon="❌">Budova nemá okna — uvnitř je tma bez umělého osvětlení</li>
+        <li data-icon="❌">Stará a dlouho používaná stavba bez možnosti smysluplné opravy</li>
+        <li data-icon="✅">Vybavení je zatím alespoň v suchu</li>
+      </ul>
+    </div>
+    <div class="compare-card new reveal-right">
+      <div class="compare-badge new">✓ Nová budova 2026</div>
+      <h3>Pevný dřevěný sklad ORV</h3>
+      <ul class="compare-list">
+        <li data-icon="✅">Nové umístění - dostatek manipulačního prostoru před vchodem</li>
+        <li data-icon="✅">Větší půdorys — více místa pro vybavení než u staré budovy</li>
+        <li data-icon="✅">Vstupní dveře 200×200 cm — snadná manipulace s objemným vybavením</li>
+        <li data-icon="✅">5 polykarbonátových oken — přirozené světlo i bez otevřených dveří</li>
+        <li data-icon="✅">Asfaltová střecha Charbit 5,2 mm — sucho po desítky let</li>
+        <li data-icon="✅">Modřínová podlaha ošetřena Bochemitem, odolná vlhkosti</li>
+        <li data-icon="✅">Životnost 20+ let při minimální údržbě</li>
+        <li data-icon="❌">Finanční náklady na výstavbu</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">

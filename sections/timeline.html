@@ -1,0 +1,480 @@
+<!-- ══════════════════════════════════════════════════════
+     timeline.html — Harmonogram
+     ══════════════════════════════════════════════════════ -->
+<style>
+  /* ── Stat strip ── */
+  #schedule .sched-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--border); border-radius: 20px;
+    overflow: hidden; margin-bottom: 3.5rem;
+  }
+  .sched-stat {
+    padding: 1.6rem 1.25rem; text-align: center;
+    border-right: 1px solid var(--border);
+    background: var(--cream-mid);
+  }
+  .sched-stat:last-child { border-right: none; }
+  .sched-stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem; color: var(--amber); line-height: 1;
+    margin-bottom: .35rem;
+  }
+  .sched-stat-lbl {
+    font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--brown-light);
+  }
+
+  /* ── Timeline rows ── */
+  .tl-wrap {
+    display: flex; flex-direction: column; gap: 0;
+    position: relative;
+  }
+  .tl-wrap::before {
+    content: ''; position: absolute;
+    left: 6.8rem; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+    z-index: 0;
+  }
+
+  .tl-row {
+    display: grid;
+    grid-template-columns: 6.8rem 2rem 1fr;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0 0 2.8rem;
+    position: relative;
+  }
+  .tl-row:last-child { padding-bottom: 0; }
+
+  .tl-month {
+    font-family: monospace;
+    font-size: 1rem; font-weight: 900;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--brown); text-align: right;
+    padding-right: 1rem; padding-top: .1rem;
+    line-height: 1.2;
+  }
+  .tl-month span {
+    display: block; font-family: monospace;
+    font-size: .6rem; font-weight: 700;
+    letter-spacing: .14em; color: var(--amber);
+    margin-bottom: .2rem;
+  }
+
+  .tl-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--amber); border: 3px solid var(--cream);
+    box-shadow: 0 0 0 2px var(--amber);
+    position: relative; z-index: 1;
+    margin-top: .35rem; justify-self: center;
+    flex-shrink: 0;
+  }
+
+  /* Card — split layout */
+  .tl-card {
+    background: var(--cream-mid); border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-left: 1.25rem;
+    transition: transform .22s, box-shadow .22s;
+    cursor: default;
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    overflow: hidden;
+    min-height: 160px;
+  }
+  .tl-card:hover {
+    transform: translateX(4px);
+    box-shadow: -4px 8px 32px rgba(180,83,9,.08);
+  }
+
+  .tl-card-body {
+    padding: 1.4rem 1.6rem;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  .tl-card-head {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: auto; padding-bottom: 1rem;
+    align-self: flex-start; width: 100%;
+  }
+  .tl-card-icon { font-size: 1.3rem; line-height: 1; }
+  .tl-card-title {
+    font-size: 1.1rem; font-weight: 800; color: var(--brown);
+    letter-spacing: -.01em;
+  }
+
+  .tl-tasks {
+    list-style: none; display: flex; flex-direction: column; gap: .55rem;
+    margin: 0 0 auto; padding: 0;
+  }
+  .tl-tasks li {
+    display: flex; align-items: baseline; gap: .6rem;
+    font-size: .92rem; color: var(--brown-mid); line-height: 1.5;
+  }
+  .tl-tasks li::before {
+    content: ''; flex-shrink: 0;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--amber);
+    position: relative; top: -.05rem;
+  }
+
+  /* Visual panel (right side) */
+  .tl-visual {
+    border-left: 1px solid var(--border);
+    background: var(--cream-deep);
+    position: relative;
+    overflow: hidden;
+    min-height: 176px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* SVG lumber illustration (Duben) */
+  .tl-visual-svg {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .tl-visual-svg svg { width: 100%; height: auto; max-height: 140px; }
+
+  /* Mini Three.js canvas */
+  .tl-mini-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+  }
+  .tl-mini-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--cream-deep);
+  }
+  .tl-mini-spinner {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  .tl-mini-placeholder {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: .62rem; font-family: monospace; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--brown-light);
+    text-align: center; padding: .5rem;
+    line-height: 1.6;
+  }
+  .tl-mini-placeholder.visible { display: flex; }
+
+  @media (max-width: 700px) {
+    #schedule .sched-stats { grid-template-columns: 1fr 1fr; }
+    .sched-stat:nth-child(2) { border-right: none; }
+    .sched-stat:nth-child(3) { border-top: 1px solid var(--border); }
+    .tl-wrap::before { left: 5rem; }
+    .tl-row { grid-template-columns: 5rem 2rem 1fr; }
+    .tl-month { font-size: .78rem; }
+    .tl-card { grid-template-columns: 1fr; }
+    .tl-visual { border-left: none; border-top: 1px solid var(--border); height: 112px; }
+  }
+</style>
+
+<section class="section" id="schedule">
+  <div class="section-header reveal">
+    <span class="section-num">04 —</span>
+    <h2 class="section-title">Harmonogram</h2>
+    <p class="section-sub">Start v dubnu 2026. Plánovaný konec: srpen 2026.</p>
+  </div>
+
+  <!-- Timeline -->
+  <div class="tl-wrap reveal">
+
+    <!-- DUBEN — SVG dřevo -->
+    <div class="tl-row">
+      <div class="tl-month"><span>APR</span>Duben</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-body">
+          <div class="tl-card-head">
+            <span class="tl-card-icon">🌱</span>
+            <span class="tl-card-title">Příprava & základy</span>
+          </div>
+          <ul class="tl-tasks">
+            <li>Nákup veškerého materiálu a příprava terénu</li>
+            <li>Vykopání děr a vybetonování patek</li>
+            <li>Natření a ošetření dřeva Bochemitem</li>
+          </ul>
+        </div>
+        <div class="tl-visual">
+          <img src="Fotky/truck_cropped.png"
+               style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;"
+               alt="Dovoz materiálu">
+        </div>
+      </div>
+    </div>
+
+    <!-- KVĚTEN — mini viewer fáze 1 -->
+    <div class="tl-row">
+      <div class="tl-month"><span>KVĚ</span>Květen</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-body">
+          <div class="tl-card-head">
+            <span class="tl-card-icon">🔨</span>
+            <span class="tl-card-title">Podlaha & nosná konstrukce</span>
+          </div>
+          <ul class="tl-tasks">
+            <li>Sestavení rámu podlahy (KVH 100×140) a pokládka prken 28×140 mm</li>
+            <li>Vyplnění mezer podlahovými nosníky (KVH 60×140)</li>
+            <li>Případný začátek nosné konstrukce stěn</li>
+          </ul>
+        </div>
+        <div class="tl-visual" id="tl-wrap-1">
+          <canvas class="tl-mini-canvas" id="tl-canvas-1"></canvas>
+          <div class="tl-mini-placeholder" id="tl-ph-1">model<br>nenačten</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ČERVEN — mini viewer fáze 2 -->
+    <div class="tl-row">
+      <div class="tl-month"><span>ČVN</span>Červen</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-body">
+          <div class="tl-card-head">
+            <span class="tl-card-icon">🏗</span>
+            <span class="tl-card-title">Stěny & opláštění</span>
+          </div>
+          <ul class="tl-tasks">
+            <li>Dokončování nosné konstrukce stěn</li>
+            <li>Opláštění stěn smrkovými palubkami </li>
+            <li>Start budování střešní konstrukce</li>
+          </ul>
+        </div>
+        <div class="tl-visual" id="tl-wrap-2">
+          <canvas class="tl-mini-canvas" id="tl-canvas-2"></canvas>
+          <div class="tl-mini-placeholder" id="tl-ph-2">model<br>nenačten</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ČERVENEC — mini viewer fáze 3 -->
+    <div class="tl-row">
+      <div class="tl-month"><span>ČVC</span>Červenec</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-body">
+          <div class="tl-card-head">
+            <span class="tl-card-icon">🏠</span>
+            <span class="tl-card-title">Střecha & otvory</span>
+          </div>
+          <ul class="tl-tasks">
+            <li>Montáž střešních krokví</li>
+            <li>Instalace polykarbonátových oken (850×650 mm)</li>
+            <li>Výroba a následné usazení dveří 200*200cm</li>
+          </ul>
+        </div>
+        <div class="tl-visual" id="tl-wrap-3">
+          <canvas class="tl-mini-canvas" id="tl-canvas-3"></canvas>
+          <div class="tl-mini-placeholder" id="tl-ph-3">model<br>nenačten</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SRPEN — mini viewer fáze 4 -->
+    <div class="tl-row">
+      <div class="tl-month"><span>SRP</span>Srpen</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-body">
+          <div class="tl-card-head">
+            <span class="tl-card-icon">🛡</span>
+            <span class="tl-card-title">Záložní měsíc</span>
+          </div>
+          <ul class="tl-tasks">
+            <li>Závětrné lišty a rezerva pro případné zpoždění</li>
+            <li>Dokončení povrchových úprav (LUXOL lazura)</li>
+            <li>Finální detaily a úklid staveniště</li>
+          </ul>
+        </div>
+        <div class="tl-visual" id="tl-wrap-4">
+          <canvas class="tl-mini-canvas" id="tl-canvas-4"></canvas>
+          <div class="tl-mini-placeholder" id="tl-ph-4">model<br>nenačten</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  // Stejná definice fází jako v visualization.html
+  const PHASES = [
+    {
+      collections: [
+        { prefix: 'podlaha_', color: 0xC8A882 },
+        { prefix: 'patky_',   color: 0xE8E0D5 },
+      ]
+    },
+    {
+      collections: [
+        { prefix: 'framework_sten_', color: 0x6B4226 },
+      ]
+    },
+    {
+      collections: [
+        { prefix: 'steny_palubky_', color: 0xC8A882 },
+      ]
+    },
+    {
+      collections: [
+        { prefix: 'podklad_strechy_', color: 0x6B4226 },
+        { prefix: 'strecha_',         color: 0x6B4226 },
+      ]
+    },
+  ];
+
+  function getPhaseForName(name) {
+    for (let i = 0; i < PHASES.length; i++) {
+      for (const col of PHASES[i].collections) {
+        if (name.startsWith(col.prefix)) return i + 1;
+      }
+    }
+    return null;
+  }
+  function getColorForName(name) {
+    for (const phase of PHASES) {
+      for (const col of phase.collections) {
+        if (name.startsWith(col.prefix)) return col.color;
+      }
+    }
+    return null;
+  }
+
+  const glbPath = 'model_komplet.glb';
+
+  // Načti GLB jednou, pak vytvořme každý viewer
+  async function loadGLB() {
+    const r = await fetch(glbPath, { method: 'HEAD' });
+    if (!r.ok) throw new Error('not found');
+    const loader = new GLTFLoader();
+    return loader.loadAsync(glbPath);
+  }
+
+  function createMiniViewer(canvasId, wrapId, phId, phaseNum) {
+    const canvas  = document.getElementById(canvasId);
+    const wrap    = document.getElementById(wrapId);
+    const ph      = document.getElementById(phId);
+    if (!canvas || !wrap) return null;
+
+    const w = wrap.clientWidth  || 200;
+    const h = wrap.clientHeight || 160;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf5e6cc);
+
+    const camera = new THREE.PerspectiveCamera(45, w / h, 0.01, 1000);
+    camera.position.set(6, 4, 8);
+
+    scene.add(new THREE.AmbientLight(0xfff4e0, 1.2));
+    const sun = new THREE.DirectionalLight(0xfff0cc, 2.5);
+    sun.position.set(5, 10, 5);
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0xc4a880, 0.6);
+    fill.position.set(-5, 3, -5);
+    scene.add(fill);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.keys = {};
+    controls.enableDamping   = true;
+    controls.dampingFactor   = 0.07;
+    controls.autoRotate      = false;
+    controls.minDistance     = 2;
+    controls.maxDistance     = 30;
+    controls.enableZoom      = false;
+    controls.enablePan       = false;
+
+    window.addEventListener('resize', () => {
+      const nw = wrap.clientWidth, nh = wrap.clientHeight;
+      if (!nw || !nh) return;
+      camera.aspect = nw / nh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    return { scene, camera, controls, ph };
+  }
+
+  // Klonuje scénu a nastaví viditelnost do zadané fáze
+  function buildPhaseScene(gltf, phaseNum, targetScene, camera, controls) {
+    const clone = gltf.scene.clone(true);
+    // Přebarvení a viditelnost
+    clone.traverse(obj => {
+      if (!obj.isMesh) return;
+      const phase = getPhaseForName(obj.name);
+      const color = getColorForName(obj.name);
+      if (phase !== null) {
+        obj.visible = phase <= phaseNum;
+        obj.material = new THREE.MeshStandardMaterial({
+          color: color || 0xC8A882,
+          roughness: 0.75,
+          metalness: 0.05,
+        });
+      }
+    });
+    targetScene.add(clone);
+
+    // Kamera
+    const box    = new THREE.Box3().setFromObject(clone);
+    const center = box.getCenter(new THREE.Vector3());
+    const size   = box.getSize(new THREE.Vector3());
+    clone.position.sub(center);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    camera.position.set(maxDim * 1.275, maxDim * 0.51, maxDim * 1.275);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  }
+
+  // Inicializuj 4 viewery
+  const viewers = [
+    createMiniViewer('tl-canvas-1', 'tl-wrap-1', 'tl-ph-1', 1),
+    createMiniViewer('tl-canvas-2', 'tl-wrap-2', 'tl-ph-2', 2),
+    createMiniViewer('tl-canvas-3', 'tl-wrap-3', 'tl-ph-3', 3),
+    createMiniViewer('tl-canvas-4', 'tl-wrap-4', 'tl-ph-4', 4),
+  ];
+
+  loadGLB()
+    .then(gltf => {
+      viewers.forEach((v, i) => {
+        if (!v) return;
+        buildPhaseScene(gltf, i + 1, v.scene, v.camera, v.controls);
+      });
+    })
+    .catch(() => {
+      viewers.forEach(v => {
+        if (!v) return;
+        v.loading.style.display = 'none';
+        v.ph.classList.add('visible');
+      });
+    });
+</script>

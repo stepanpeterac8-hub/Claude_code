@@ -1,0 +1,281 @@
+<!-- ══════════════════════════════════════════════════════
+     materials.html — Materiálový seznam
+     ══════════════════════════════════════════════════════ -->
+<style>
+  /* ── TAB NAV ───────────────────────────────────────────── */
+  #materials .tabs-nav {
+    display: flex;
+    border-radius: 14px 14px 0 0;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    border-bottom: none;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 1rem 1rem .85rem;
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    background: var(--cream-mid);
+    color: var(--brown-light);
+    border: none;
+    border-right: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: background .2s, color .2s;
+    font-family: 'DM Sans', sans-serif;
+    position: relative;
+  }
+
+  .tab-btn:last-child { border-right: none; }
+
+  .tab-btn small {
+    display: block;
+    font-weight: 500;
+    font-size: .7rem;
+    opacity: .65;
+    margin-top: .2rem;
+    letter-spacing: .04em;
+    text-transform: none;
+  }
+
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background .2s;
+  }
+
+  .tab-btn:hover {
+    background: var(--cream-deep);
+    color: var(--brown-mid);
+  }
+
+  .tab-btn.active {
+    background: #fff;
+    color: var(--amber);
+  }
+
+  .tab-btn.active::after {
+    background: var(--amber);
+  }
+
+  /* ── TAB PANEL ─────────────────────────────────────────── */
+  .tab-panel {
+    display: none;
+    border: 1.5px solid var(--border);
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 32px rgba(44,24,16,.07);
+  }
+  .tab-panel.active { display: block; }
+
+  /* ── TABLE ─────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr {
+    background: linear-gradient(90deg, var(--cream-deep) 0%, #f5e2c0 100%);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    padding: .95rem 1.3rem;
+    font-size: .65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+    color: var(--brown-light);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+
+  tbody tr:nth-child(even) { background: rgba(253,244,231,.5); }
+  tbody tr:hover { background: var(--cream-mid); }
+
+  td { padding: .88rem 1.3rem; font-size: .84rem; vertical-align: middle; }
+
+  td.mat-name  { font-weight: 700; color: var(--brown); }
+  td.mat-dims  { font-family: monospace; font-size: .77rem; color: var(--brown-light); }
+  td.mat-qty   {
+    font-family: monospace; font-weight: 800;
+    color: var(--brown-mid);
+  }
+
+  /* Cena jako pill */
+  td.mat-total {
+    white-space: nowrap;
+  }
+
+  .price-pill {
+    display: inline-block;
+    background: rgba(231,200,154,.18);
+    color: var(--amber-dark);
+    font-family: monospace;
+    font-weight: 700;
+    font-size: .8rem;
+    padding: .22rem .75rem;
+    border-radius: 100px;
+    border: 1px solid var(--gold-pale);
+  }
+
+  /* Odkaz */
+  .mat-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--amber);
+    border: 1.5px solid var(--gold-pale);
+    padding: .28rem .85rem;
+    border-radius: 100px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .2s, color .2s, border-color .2s, box-shadow .2s;
+  }
+
+  .mat-link:hover {
+    background: var(--amber);
+    color: #fff;
+    border-color: var(--amber);
+    box-shadow: 0 4px 14px rgba(180,83,9,.22);
+  }
+
+  /* ── TFOOT ─────────────────────────────────────────────── */
+  tfoot tr {
+    background: linear-gradient(90deg, var(--cream-deep) 0%, #f0ddb8 100%);
+    border-top: 2px solid var(--gold-pale);
+  }
+
+  tfoot td { padding: .95rem 1.3rem; }
+
+  .tfoot-label {
+    font-size: .68rem;
+    font-weight: 800;
+    color: var(--brown-light);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+
+  .tfoot-total {
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    font-weight: 800;
+    color: var(--amber-dark);
+    white-space: nowrap;
+    letter-spacing: .02em;
+  }
+
+  /* ── DISCLAIMER ────────────────────────────────────────── */
+  .mat-note {
+    font-size: .73rem;
+    color: var(--brown-light);
+    padding: .75rem 1.3rem;
+    background: var(--cream);
+    border-top: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .mat-note::before {
+    content: 'ℹ';
+    font-size: .9rem;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+</style>
+
+<section class="section" id="materials">
+  <div class="section-header reveal">
+    <span class="section-num">07 —</span>
+    <h2 class="section-title">Materiálový seznam</h2>
+  </div>
+  <div class="reveal">
+    <div class="tabs-nav" id="tabs-nav" role="tablist" aria-label="Kategorie materiálů">
+      <button class="tab-btn active" data-tab="podlaha" role="tab" aria-selected="true"  aria-controls="tab-podlaha" id="tbtn-podlaha">🪵 Podlaha<small>~33 tis.</small></button>
+      <button class="tab-btn"        data-tab="steny"   role="tab" aria-selected="false" aria-controls="tab-steny"   id="tbtn-steny"  >🧱 Stěny<small>~47 tis.</small></button>
+      <button class="tab-btn"        data-tab="strecha" role="tab" aria-selected="false" aria-controls="tab-strecha" id="tbtn-strecha">🏠 Střecha<small>~34 tis.</small></button>
+      <button class="tab-btn"        data-tab="povrch"  role="tab" aria-selected="false" aria-controls="tab-povrch"  id="tbtn-povrch" >🎨 Povrch<small>~6 tis.</small></button>
+    </div>
+
+    <!-- PODLAHA -->
+    <div class="tab-panel active" id="tab-podlaha" role="tabpanel" aria-labelledby="tbtn-podlaha">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Beton B20</td><td class="mat-dims">25 kg/bal.</td><td class="mat-qty">34×</td><td class="mat-total"><span class="price-pill">~3 000 Kč</span></td><td><a class="mat-link" href="https://www.hornbach.cz/p/beton-precit-b20-mpa-baleni-25-kg/10000529" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">Prkno – forma na beton</td><td class="mat-dims">2000×95×24 mm</td><td class="mat-qty">10×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.hornbach.cz/p/prkno-hoblovane-24-x-95-x-2000-mm-smrk/5241566/" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">Kovové patky stavitelné</td><td class="mat-dims">80×80 mm</td><td class="mat-qty">12×</td><td class="mat-total"><span class="price-pill">~2 000 Kč</span></td><td><a class="mat-link" href="https://kotarbau.cz/product-cze-1316-patka-sloupku-stavitelna-80x80x500.html" target="_blank" rel="noreferrer">Kotarbau ↗</a></td></tr>
+          <tr><td class="mat-name">Trámy obvodové 6 m</td><td class="mat-dims">6000×100×140 mm</td><td class="mat-qty">2×</td><td class="mat-total"><span class="price-pill">~2 000 Kč</span></td><td><a class="mat-link" href="https://e-rezivo.cz/dreveny-hranol-100-x-140-mm-delka-6-m/" target="_blank" rel="noreferrer">e-rezivo ↗</a></td></tr>
+          <tr><td class="mat-name">Trámy obvodové 3 m</td><td class="mat-dims">3000×100×140 mm</td><td class="mat-qty">6×</td><td class="mat-total"><span class="price-pill">~3 000 Kč</span></td><td><a class="mat-link" href="https://www.filko-pila.cz/produkt/hranol/" target="_blank" rel="noreferrer">Filko-pila ↗</a></td></tr>
+          <tr><td class="mat-name">Vazníky KVH 60×140</td><td class="mat-dims">5500×140×60 mm</td><td class="mat-qty">6×</td><td class="mat-total"><span class="price-pill">~7 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/kvh-nsi-smrk-60x140mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Prkno modřín – terasa</td><td class="mat-dims">3000×140×28 mm</td><td class="mat-qty">11×</td><td class="mat-total"><span class="price-pill">~15 000 Kč</span></td><td><a class="mat-link" href="https://www.dek.cz/produkty/detail/3012010419-au-mex-terasa-modrin-slezsky-28x140x3000mm-hl-hl-4ks-bal" target="_blank" rel="noreferrer">DEK ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" class="tfoot-label">Mezisoučet</td><td class="tfoot-total">~33 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <!-- STĚNY -->
+    <div class="tab-panel" id="tab-steny" role="tabpanel" aria-labelledby="tbtn-steny">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Sloupy 3 m (50×100)</td><td class="mat-dims">3000×100×50 mm</td><td class="mat-qty">44×</td><td class="mat-total"><span class="price-pill">~10 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/konstrukcni-lat-sm-50x100mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Sloupy 2,5 m svislé</td><td class="mat-dims">3000×100×50 mm</td><td class="mat-qty">22×</td><td class="mat-total"><span class="price-pill">~5 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/konstrukcni-lat-sm-50x100mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Palubky obkl. 3 m</td><td class="mat-dims">3000×19×146 mm</td><td class="mat-qty">44×</td><td class="mat-total"><span class="price-pill">~8 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/obkladova-palubka-sm-19x146-mm-f-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Palubky obkl. 6 m</td><td class="mat-dims">3000×19×146 mm</td><td class="mat-qty">82×</td><td class="mat-total"><span class="price-pill">~15 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/obkladova-palubka-sm-19x146-mm-f-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Okna – prkýnka</td><td class="mat-dims">20×20×2000 mm</td><td class="mat-qty">10×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.pro-doma.cz/hranolek-20-20-2000-mm" target="_blank" rel="noreferrer">Pro-doma ↗</a></td></tr>
+          <tr><td class="mat-name">Palubky – dveře</td><td class="mat-dims">4000×19×146 mm</td><td class="mat-qty">7×</td><td class="mat-total"><span class="price-pill">~2 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/obkladova-palubka-sm-19x146mm-profil-klasik-c-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Prkna – dveře</td><td class="mat-dims">4000×40×121 mm</td><td class="mat-qty">3×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/hoblovane-prkno-sm-40x121mm-a-ab" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">Polykarbonát – okna</td><td class="mat-dims">845×645×4 mm</td><td class="mat-qty">5×</td><td class="mat-total"><span class="price-pill">~5 000 Kč</span></td><td><a class="mat-link" href="https://plasticexpress.cz/configurator/46-bezbarv-pln-polykarbon-t/62-5-mm" target="_blank" rel="noreferrer">PlasticExpress ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" class="tfoot-label">Mezisoučet</td><td class="tfoot-total">~47 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <!-- STŘECHA -->
+    <div class="tab-panel" id="tab-strecha" role="tabpanel" aria-labelledby="tbtn-strecha">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Závětrné pásy</td><td class="mat-dims">40×2×10 000 mm</td><td class="mat-qty">2×</td><td class="mat-total"><span class="price-pill">~2 000 Kč</span></td><td><a class="mat-link" href="https://eshop.drevocentrum-as.cz/z111737-smrkove-prkno-stavebni-24-x-100-mm-4-m" target="_blank" rel="noreferrer">Drevocentrum ↗</a></td></tr>
+          <tr><td class="mat-name">Čelní vaznice KVH</td><td class="mat-dims">6500×140×40 mm</td><td class="mat-qty">2×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.woodie.cz/kvh-hranol-40-140-mm-nsi" target="_blank" rel="noreferrer">Woodie ↗</a></td></tr>
+          <tr><td class="mat-name">Krokve KVH 60×140</td><td class="mat-dims">4000×60×140 mm</td><td class="mat-qty">13×</td><td class="mat-total"><span class="price-pill">~10 000 Kč</span></td><td><a class="mat-link" href="https://www.palubky-eshop.cz/kvh-nsi-smrk-60x140mm" target="_blank" rel="noreferrer">Palubky ↗</a></td></tr>
+          <tr><td class="mat-name">OSB desky tl. 22 mm</td><td class="mat-dims">22×1250×2500 mm</td><td class="mat-qty">20×</td><td class="mat-total"><span class="price-pill">~11 000 Kč</span></td><td><a class="mat-link" href="https://www.dek.cz/produkty/detail/3010488220-osb-krono-3-22x2500x625-n-4pd-32ks-p" target="_blank" rel="noreferrer">DEK ↗</a></td></tr>
+          <tr><td class="mat-name">Asfalt. pás Charbit</td><td class="mat-dims">tl. 5,2 mm, 5 m²/rol.</td><td class="mat-qty">6×</td><td class="mat-total"><span class="price-pill">~6 000 Kč</span></td><td><a class="mat-link" href="https://www.pro-doma.cz/pas-asfaltovy-charbit-elast-pv-s52-hq-final-seda-natur-5-m2-role-tloustka-5-2-mm" target="_blank" rel="noreferrer">Pro-doma ↗</a></td></tr>
+          <tr><td class="mat-name">Závětrné lišty</td><td class="mat-dims">14 m / ks</td><td class="mat-qty">8×</td><td class="mat-total"><span class="price-pill">~3 000 Kč</span></td><td><a class="mat-link" href="https://www.plechujeme.cz/zavetrna-lista-na-pultovou-strechu-rs-250-p2406/" target="_blank" rel="noreferrer">Plechujeme ↗</a></td></tr>
+          <tr><td class="mat-name">Okapnice</td><td class="mat-dims">6 m / ks</td><td class="mat-qty">3×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.plechujeme.cz/okapnice-rs-250-p2403/" target="_blank" rel="noreferrer">Plechujeme ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" class="tfoot-label">Mezisoučet</td><td class="tfoot-total">~34 000 Kč</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <!-- POVRCH -->
+    <div class="tab-panel" id="tab-povrch" role="tabpanel" aria-labelledby="tbtn-povrch">
+      <table>
+        <thead><tr><th>Materiál</th><th>Rozměry</th><th>Ks</th><th>Celkem</th><th>Zdroj</th></tr></thead>
+        <tbody>
+          <tr><td class="mat-name">Bochemit QB</td><td class="mat-dims">5 kg (350 m²)</td><td class="mat-qty">1×</td><td class="mat-total"><span class="price-pill">~2 000 Kč</span></td><td><a class="mat-link" href="https://www.hornbach.cz/p/ochrana-dreva-bochemit-original-ciry-biocid-5-kg/10537407/" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">Asfalt. penetrační lak</td><td class="mat-dims">9 kg</td><td class="mat-qty">1×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.hornbach.cz/p/asfaltovy-penetracni-lak-den-braven-denbit-br-alp-9-kg/8476040/" target="_blank" rel="noreferrer">Hornbach ↗</a></td></tr>
+          <tr><td class="mat-name">LUXOL Lazura čirá 10 l</td><td class="mat-dims">10 l</td><td class="mat-qty">1×</td><td class="mat-total"><span class="price-pill">~2 000 Kč</span></td><td><a class="mat-link" href="https://www.obi.cz/lazury-na-drevo/luxol-original-tenkovrstva-lazura-bezbarva-10-l/p/3714557" target="_blank" rel="noreferrer">OBI ↗</a></td></tr>
+          <tr><td class="mat-name">LUXOL Lazura čirá 2,5 l</td><td class="mat-dims">2,5 l</td><td class="mat-qty">1×</td><td class="mat-total"><span class="price-pill">~1 000 Kč</span></td><td><a class="mat-link" href="https://www.obi.cz/lazury-na-drevo/luxol-original-tenkovrstva-lazura-bezbarva-2-5-l/p/3714540" target="_blank" rel="noreferrer">OBI ↗</a></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" class="tfoot-label">Mezisoučet</td><td class="tfoot-total">~6 000 Kč</td><td></td></tr></tfoot>
+      </table>
+      <p class="mat-note">V cenách nejsou zahrnuty spojovací materiály (hřebíky, vruty, kotvy, pásky apod.).</p>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">

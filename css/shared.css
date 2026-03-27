@@ -1,0 +1,150 @@
+/* ══════════════════════════════════════════════════════
+   shared.css — sdílené proměnné, reset, základní styly
+   ══════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream:       #fdf4e7;
+  --cream-mid:   #fdf0d8;
+  --cream-deep:  #f5e6cc;
+  --border:      #e7dcc8;
+  --amber:       #b45309;
+  --amber-dark:  #92400e;
+  --brown:       #2c1810;
+  --brown-mid:   #5a4a3a;
+  --brown-light: #8b7355;
+  --gold:        #c4a880;
+  --gold-pale:   #e7c89a;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Offset pro fixed navbar (~62px) — kotvy se nescrolují pod lištu */
+  scroll-padding-top: 72px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--brown);
+  overflow-x: hidden;
+}
+
+/* ── FOCUS VISIBLE — klávesnicová navigace ─────────── */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── PREFERS REDUCED MOTION ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+h1, h2, h3 { font-family: 'DM Serif Display', serif; }
+
+/* ── LOADER ────────────────────────────────────────── */
+#loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1rem;
+}
+#loader-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem; color: var(--brown);
+  animation: loader-pulse 1.2s ease-in-out infinite;
+}
+#loader-bar {
+  width: 120px; height: 3px;
+  background: var(--border); border-radius: 2px; overflow: hidden;
+}
+#loader-bar::after {
+  content: ''; display: block;
+  width: 40%; height: 100%;
+  background: var(--amber); border-radius: 2px;
+  animation: loader-slide 1.2s ease-in-out infinite;
+}
+@keyframes loader-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes loader-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ── DIVIDER ───────────────────────────────────────── */
+.divider {
+  max-width: 1200px; margin: 0 auto;
+  border: none; border-top: 1px solid var(--border);
+}
+
+/* ── SECTION BASE ──────────────────────────────────── */
+.section {
+  max-width: 1200px; margin: 0 auto;
+  padding: 6rem 2rem;
+}
+
+.section-header { margin-bottom: 3rem; }
+.section-num {
+  font-family: monospace; font-size: 11px; color: var(--gold);
+  letter-spacing: .2em; display: block; margin-bottom: .5rem;
+}
+.section-title {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400; color: var(--brown); line-height: 1.1;
+}
+.section-sub {
+  font-size: .9rem; color: var(--gold); margin-top: .75rem;
+}
+
+/* ── REVEAL UTILITIES ──────────────────────────────── */
+.reveal       { opacity: 0; transform: translateY(40px); }
+.reveal-left  { opacity: 0; transform: translateX(-60px); }
+.reveal-right { opacity: 0; transform: translateX(60px); }
+
+/* ── FOOTER ────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  background: var(--cream-mid);
+  padding: 2rem;
+}
+.footer-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: monospace; font-size: .72rem; color: var(--gold);
+}
+.footer-logo {
+  display: flex; align-items: center; gap: .6rem;
+}
+.footer-logo-badge {
+  width: 22px; height: 22px; background: var(--amber); border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 900; color: #fff;
+}
+
+/* ── RESPONSIVE ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  #about .about-grid,
+  #compare .compare-grid,
+  #budget .budget-grid,
+  #process .process-grid { grid-template-columns: 1fr; }
+  #overview .cards-grid { grid-template-columns: 1fr 1fr; }
+  .schedule-phases { grid-template-columns: 1fr 1fr; }
+  .weekends-grid { grid-template-columns: repeat(8, 1fr); }
+  .tabs-nav { flex-wrap: wrap; }
+  .tab-btn { flex: 1 0 48%; }
+}
+@media (max-width: 480px) {
+  #overview .cards-grid { grid-template-columns: 1fr; }
+  .schedule-phases { grid-template-columns: 1fr; }
+}

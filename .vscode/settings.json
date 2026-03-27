@@ -1,0 +1,9 @@
+{
+  "liveServer.settings.useLocalIp": false,
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true,
+  "liveServer.settings.ignoreFiles": [
+    "sections/**",
+    "Fotky/**"
+  ]
+}

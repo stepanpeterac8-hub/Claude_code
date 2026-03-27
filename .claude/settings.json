@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const fs=require\\(''fs''\\);const data=fs.readFileSync\\(''c:/Users/Stepa/Desktop/MIX/Claude_code/model.glb''\\);const jsonLen=data.readUInt32LE\\(12\\);const j=JSON.parse\\(data.slice\\(20,20+jsonLen\\)\\);console.log\\(''=== NODES ===''\\);\\(j.nodes||[]\\).forEach\\(n=>console.log\\(n.name||''\\(no name\\)''\\)\\);\")",
+      "Read(//c/Users/Stepa/.claude/plans/**)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(py -c \"from PIL import Image; print\\(''ok''\\)\")",
+      "Bash(node -e \"console.log\\(''ok''\\)\")",
+      "Bash(node -e \":*)",
+      "Read(//c/Users/Stepa/.agents/**)",
+      "Bash(npm install:*)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"documentation technical overview minimal warm\" --design-system -p \"ORV Building Overview\")",
+      "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"documentation technical overview minimal warm\" --design-system -p \"ORV Building Overview\")",
+      "Bash(py --version)",
+      "Bash(python3 \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"documentation technical specs minimal warm editorial\" --design-system -p \"ORV Building Overview\")",
+      "Bash(\"C:\\\\Users\\\\Stepa\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\python3.exe\" \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"documentation technical specs minimal warm editorial\" --design-system -p \"ORV Building Overview\")",
+      "Bash(py -3 --version)",
+      "Bash(py -3 \"c:\\\\Users\\\\Stepa\\\\Desktop\\\\MIX\\\\Claude_code\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"documentation technical specs minimal warm\" --design-system)",
+      "Bash(cmd /c \"py -3 --version\")",
+      "Bash(cmd /c \"py -3 -c \"\"import sys; print\\(sys.version\\)\"\"\")",
+      "Bash(cmd /c \"py -3 \"\"c:\\\\Users\\\\Stepa\\\\Desktop\\\\MIX\\\\Claude_code\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\"\" \"\"documentation minimal warm technical\"\" --design-system 2>&1\")",
+      "Bash(wmic process:*)",
+      "Read(//c/Program Files/Adobe//**)",
+      "Read(//c/Program Files \\(x86\\)/Adobe//**)",
+      "Bash(gswin64c --version)",
+      "Bash(gswin32c --version)",
+      "Bash(magick --version)"
+    ]
+  }
+}
